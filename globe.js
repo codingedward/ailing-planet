@@ -197,7 +197,9 @@
       (d[0] /= l), (d[1] /= l), (d[2] /= l);
     };
     const longitude = point => {
-      if (Math.abs(point[0]) <= Math.PI) return point[0];
+      if (Math.abs(point[0]) <= Math.PI) {
+        return point[0];
+      }
       return (
         Math.sign(point[0]) *
         (((Math.abs(point[0]) + Math.PI) % Math.TAU) - Math.PI)
@@ -220,13 +222,18 @@
         let winding = 0;
 
         const sum = new d3.Adder();
-        if (sinPhi === 1) phi = Math.HALF_PI + EPSILON;
-        else if (sinPhi === -1) phi = -Math.HALF_PI - EPSILON;
+        if (sinPhi === 1) {
+           phi = Math.HALF_PI + EPSILON;
+        } else if (sinPhi === -1) {
+           phi = -Math.HALF_PI - EPSILON;
+        }
 
         for (let i = 0, n = polygon.length; i < n; ++i) {
           let ring;
           let m;
-          if (!(m = (ring = polygon[i]).length)) continue;
+          if (!(m = (ring = polygon[i]).length)) {
+           continue;
+          }
           let point0 = ring[m - 1];
           let lambda0 = longitude(point0);
           const phi0 = point0[1] / 2 + Math.QUARTER_PI;
@@ -315,27 +322,19 @@
 
     const x =
       ((event.clientX - renderer.domElement.offsetLeft + 0.5) /
-        window.innerWidth) *
-        2 -
-      1;
+        window.innerWidth  * 2) - 1;
     const y =
       -(
         (event.clientY - renderer.domElement.offsetTop + 0.5) /
-        window.innerHeight
-      ) *
-        2 +
-      1;
+        window.innerHeight * 2
+      ) + 1;
     raycaster.setFromCamera({ x, y }, camera);
-    const intersects = raycaster.intersectObjects([earth]);
+    const intersects = raycaster.intersectObject(earth);
     if (intersects.length > 0) {
       const { point } = intersects[0];
-      const lat = 90 - Math.rad2Deg(Math.acos(point.y / POINTS_GLOBE_RADIUS));
-      const phi = Math.deg2Rad(90 - lat);
+      const lat = 90 - Math.rad2Deg(Math.acos(point.y / GLOBE_RADIUS));
       const lng =
-        180 -
-        Math.rad2Deg(
-          Math.acos(point.x / (POINTS_GLOBE_RADIUS * Math.sin(phi))),
-        );
+        ((270 + Math.rad2Deg(Math.atan2(point.x, point.z))) % 360) - 180;
       const country = findCountryByLngLat({ lng, lat });
       if (country) {
         console.log(country.properties);
@@ -437,7 +436,7 @@
           const theta = Math.deg2Rad(180 - lng);
           const radius = magnitude > 0 ? POINTS_GLOBE_RADIUS : 1;
           pointsMesh.position.x = radius * Math.sin(phi) * Math.cos(theta);
-          pointsMesh.position.y = POINTS_GLOBE_RADIUS * Math.cos(phi);
+          pointsMesh.position.y = radius * Math.cos(phi);
           pointsMesh.position.z = radius * Math.sin(phi) * Math.sin(theta);
           pointsMesh.lookAt(earth.position);
           pointsMesh.scale.z = radius * magnitude;
