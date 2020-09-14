@@ -73,6 +73,8 @@
   const targetOnDown = { x: 0, y: 0 };
   let distance = 1400;
   let distanceTarget = 1400;
+  let isMouseMove;
+  let mouseDownStartTime;
   const container = document.getElementsByClassName('container')[0];
 
   function initialize() {
@@ -92,7 +94,7 @@
       polygonMeshes.push(
         new THREE.LineSegments(
           new THREE.GeoJsonGeometry(geometry, GLOBE_RADIUS),
-          new THREE.LineBasicMaterial({ color: '#440000' }), // outer ring
+          new THREE.LineBasicMaterial({ color: '#440000' }),
         ),
       );
     });
@@ -310,16 +312,7 @@
     });
   }
 
-  function onMouseDown(event) {
-    container.addEventListener('mousemove', onMouseMove, false);
-    container.addEventListener('mouseup', onMouseUp, false);
-    container.addEventListener('mouseout', onMouseOut, false);
-    mouseOnDown.x = -event.clientX;
-    mouseOnDown.y = event.clientY;
-    targetOnDown.x = target.x;
-    targetOnDown.y = target.y;
-    container.style.cursor = 'grabbing';
-
+  function onCountryClicked(event) {
     const x =
       ((event.clientX - renderer.domElement.offsetLeft + 0.5) /
         window.innerWidth  * 2) - 1;
@@ -337,12 +330,26 @@
         ((270 + Math.rad2Deg(Math.atan2(point.x, point.z))) % 360) - 180;
       const country = findCountryByLngLat({ lng, lat });
       if (country) {
-        console.log(country.properties);
+        window.countryStats.setActiveCountry(country.properties);
       }
     }
   }
 
+  function onMouseDown(event) {
+    container.addEventListener('mousemove', onMouseMove, false);
+    container.addEventListener('mouseup', onMouseUp, false);
+    container.addEventListener('mouseout', onMouseOut, false);
+    mouseOnDown.x = -event.clientX;
+    mouseOnDown.y = event.clientY;
+    targetOnDown.x = target.x;
+    targetOnDown.y = target.y;
+    mouseDownStartTime = performance.now();
+    isMouseMove = false;
+  }
+
   function onMouseMove(event) {
+    isMouseMove = true;
+    container.style.cursor = 'grabbing';
     const zoomDamp = distance / 800;
     mouse.x = -event.clientX;
     mouse.y = event.clientY;
@@ -356,6 +363,10 @@
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
     container.style.cursor = 'auto';
+
+    if (!isMouseMove && performance.now() - mouseDownStartTime <= 500) {
+      onCountryClicked(event);
+    }
   }
 
   function onMouseOut() {

@@ -27,9 +27,25 @@ Find the source code here: https://github.com/codingedward/ailing-planet
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon.png">
 	</head>
 	<body>
-    <div class="chart"></div>
+    <div class="error-message hidden"></div>
+    <div class="chart hidden"></div>
+    <div class="country-stats hidden">
+      <h1 class="country-name">Kenya</h1>
+      <p class="stat first-case-stat">
+        <span class="stat-name">First Case:</span>
+        <span class="stat-value">12th May 2020</span>
+      </p>
+      <p class="stat days-count-down-stat">
+        <span class="stat-name">Days After First Case:</span>
+        <span class="stat-value">12</span>
+      </p>
+      <p class="stat active-stat">
+        <span class="stat-name">Deaths:</span>
+        <span class="stat-value">20,000</span>
+      </p>
+    </div>
     <div class="container"></div>
-    <div class="controller">
+    <div class="controller hidden">
       <div class="controller-inner">
         <div class="controls">
           <div class="playback-button-wrapper">
@@ -46,6 +62,8 @@ Find the source code here: https://github.com/codingedward/ailing-planet
 		<script src="//unpkg.com/moment"></script>
 		<script src="//unpkg.com/nouislider"></script>
 		<script src="./lib/countries.js"></script>
+		<script src="./webgl-check.js"></script>
+		<script src="./country-stats.js"></script>
 		<script src="./globe.js"></script>
 		<script src="./chart.js"></script>
 		<script src="./player.js"></script>

@@ -1,4 +1,7 @@
 (function() {
+  if (!window.isWebGLAvailable()) {
+    return;
+  }
   const range = n => [...Array(n).keys()];
   const DATA = {
     deaths: {
@@ -100,7 +103,14 @@
       animationPlayer.addItem(globe);
       animationPlayer.addItem(raceChart);
       animationPlayer.play(globeData.length);
-      document.body.style.backgroundImage = 'none';
+
+      const body = document.body;
+      body.style.backgroundImage = 'none'
+      body.style.height = '100%';
+      const chartElement = document.getElementsByClassName('chart')[0];
+      const controllerElement = document.getElementsByClassName('controller')[0];
+      chartElement.classList.remove('hidden');
+      controllerElement.classList.remove('hidden');
     });
 
   console.log(

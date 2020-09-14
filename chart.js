@@ -169,15 +169,15 @@
     }
 
     function textTween(a, b) {
-      /*
       return function() {
         this.textContent = formatNumber(b);
       }
-      */
+      /*
       const i = d3.interpolateNumber(a, b);
       return function(t) {
         this.textContent = formatNumber(i(t));
       };
+      */
     }
 
     updateBars = bars(svg);
