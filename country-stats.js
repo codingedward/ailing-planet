@@ -7,13 +7,13 @@
 
 
   function setActiveCountry(country) {
-    console.log(country);
     if (country) {
       countryStatsElement.classList.remove('hidden');
+      nameElement.innerText = country.NAME || '';
     } else {
-      countryStatsElement.classList.add('hidden');
+      nameElement.innerText = 'World';
+      //countryStatsElement.classList.add('hidden');
     }
-    nameElement.innerText = country.NAME || '';
   }
   
 

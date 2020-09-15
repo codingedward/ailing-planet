@@ -73,8 +73,10 @@
   const targetOnDown = { x: 0, y: 0 };
   let distance = 1400;
   let distanceTarget = 1400;
-  let isMouseMove;
+  let isMouseDown;
+  let isMouseDragging;
   let mouseDownStartTime;
+  let hoveredCountry = { ISO_A3: null, mesh: null };
   const container = document.getElementsByClassName('container')[0];
 
   function initialize() {
@@ -157,6 +159,7 @@
     document.addEventListener('keydown', onDocumentKeyDown, false);
     container.addEventListener('mousedown', onMouseDown, false);
     container.addEventListener('mousewheel', onMouseWheel, false);
+    container.addEventListener('mousemove', onMouseMove, false);
     container.addEventListener(
       'mouseover',
       () => {
@@ -312,31 +315,70 @@
     });
   }
 
-  function onCountryClicked(event) {
+  function mapClientToWorldPoint(point) {
     const x =
-      ((event.clientX - renderer.domElement.offsetLeft + 0.5) /
+      ((point.x - renderer.domElement.offsetLeft + 0.5) /
         window.innerWidth  * 2) - 1;
     const y =
       -(
-        (event.clientY - renderer.domElement.offsetTop + 0.5) /
+        (point.y - renderer.domElement.offsetTop + 0.5) /
         window.innerHeight * 2
       ) + 1;
-    raycaster.setFromCamera({ x, y }, camera);
+    return { x, y };
+  }
+
+  function findCountryForWorldPoint(point) {
+    raycaster.setFromCamera(point, camera);
     const intersects = raycaster.intersectObject(earth);
     if (intersects.length > 0) {
       const { point } = intersects[0];
       const lat = 90 - Math.rad2Deg(Math.acos(point.y / GLOBE_RADIUS));
       const lng =
         ((270 + Math.rad2Deg(Math.atan2(point.x, point.z))) % 360) - 180;
-      const country = findCountryByLngLat({ lng, lat });
-      if (country) {
-        window.countryStats.setActiveCountry(country.properties);
+      return findCountryByLngLat({ lng, lat });
+    }
+  }
+
+  function onCountryClicked(event) {
+    const country = findCountryForWorldPoint(mapClientToWorldPoint({
+      x: event.clientX,
+      y: event.clientY
+    }));
+    if (country) {
+      window.countryStats.setActiveCountry(country.properties);
+    } else {
+      window.countryStats.setActiveCountry(null);
+      if (hoveredCountry.mesh) {
+        scene.remove(hoveredCountry.mesh);
+        hoveredCountry = { mesh: null, ISO_A3: null }
       }
     }
   }
 
+  function onCountryHovered(event) {
+    const country = findCountryForWorldPoint(mapClientToWorldPoint({
+      x: event.clientX,
+      y: event.clientY
+    }));
+    if (country && country.properties.ISO_A3 !== hoveredCountry.ISO_A3) {
+      if (hoveredCountry.mesh) {
+        scene.remove(hoveredCountry.mesh);
+      }
+      hoveredCountry = {
+        ISO_A3: country.properties.ISO_A3,
+        mesh: new THREE.LineSegments(
+          new THREE.GeoJsonGeometry(country.geometry, GLOBE_RADIUS + 0.5),
+          new THREE.LineBasicMaterial({ color: '#999999' }),
+        ),
+      } 
+      hoveredCountry.mesh.rotation.y = 1.5 * Math.PI;
+      hoveredCountry.mesh.matrixAutoUpdate = false;
+      hoveredCountry.mesh.updateMatrix();
+      scene.add(hoveredCountry.mesh);
+    }
+  }
+
   function onMouseDown(event) {
-    container.addEventListener('mousemove', onMouseMove, false);
     container.addEventListener('mouseup', onMouseUp, false);
     container.addEventListener('mouseout', onMouseOut, false);
     mouseOnDown.x = -event.clientX;
@@ -344,11 +386,16 @@
     targetOnDown.x = target.x;
     targetOnDown.y = target.y;
     mouseDownStartTime = performance.now();
-    isMouseMove = false;
+    isMouseDragging = false;
+    isMouseDown = true;
   }
 
   function onMouseMove(event) {
-    isMouseMove = true;
+    if (!isMouseDown) {
+      onCountryHovered(event);
+      return;
+    }
+    isMouseDragging = true;
     container.style.cursor = 'grabbing';
     const zoomDamp = distance / 800;
     mouse.x = -event.clientX;
@@ -359,18 +406,21 @@
   }
 
   function onMouseUp() {
-    container.removeEventListener('mousemove', onMouseMove, false);
+    isMouseDown = false;
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
     container.style.cursor = 'auto';
-
-    if (!isMouseMove && performance.now() - mouseDownStartTime <= 500) {
+    const x = targetOnDown.x - target.x;
+    const y = targetOnDown.y - target.y;
+    if (
+      (!isMouseDragging && performance.now() - mouseDownStartTime <= 500) ||
+      Math.sqrt(x * x + y * y) <= 0.05
+    ) {
       onCountryClicked(event);
     }
   }
 
   function onMouseOut() {
-    container.removeEventListener('mousemove', onMouseMove, false);
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
   }
