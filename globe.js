@@ -135,7 +135,6 @@
     camera = new THREE.PerspectiveCamera(30, WIDTH / HEIGHT, 1, 10000);
     camera.position.z = distance;
 
-    /*
     const listener = new THREE.AudioListener();
     camera.add(listener);
 
@@ -145,9 +144,8 @@
       sound.setBuffer(buffer);
       sound.setLoop(true);
       sound.setVolume(0.5);
-      //sound.play();
+      sound.play();
     });
-    */
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(WIDTH, HEIGHT);
@@ -455,7 +453,7 @@
   function zoom(delta) {
     distanceTarget -= delta;
     distanceTarget = distanceTarget > 1500 ? 1500 : distanceTarget;
-    distanceTarget = distanceTarget < 350 ? 350 : distanceTarget;
+    distanceTarget = distanceTarget < 600 ? 600 : distanceTarget;
   }
 
   function render() {

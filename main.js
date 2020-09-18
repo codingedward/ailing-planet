@@ -1,96 +1,58 @@
 (function() {
+  /*
   if (!window.isWebGLAvailable()) {
     return;
   }
+  */
+  const WORLD_KEY = 'OWID_WRL';
   const range = n => [...Array(n).keys()];
-  const DATA = {
-    deaths: {
-      url:
-        'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv',
-      countryNameIndex: 1,
-      latIndex: 2,
-      lngIndex: 3,
-      dataStartIndex: 4,
-      dateFormat: 'M/D/YY',
-    },
-  };
-  const SOURCE = DATA.deaths;
-  fetch(SOURCE.url, { method: 'GET' })
-    .then(res => res.text())
+  fetch('./data/data.json', { method: 'GET' })
+    .then(res => res.json())
     .then(res => {
-      const rows = res.split('\n');
-      const headers = rows[0].split(',');
-      const firstDate = moment(
-        headers[SOURCE.dataStartIndex],
-        SOURCE.dateFormat,
-        true,
-      ).utc();
-      const latLngCountryData = rows
-        .splice(1)
-        .reduce((processedRows, rowStr) => {
-          const row = rowStr.split(',');
-          const lat = parseFloat(row[SOURCE.latIndex]);
-          const lng = parseFloat(row[SOURCE.lngIndex]);
-          const name = row[SOURCE.countryNameIndex];
-          return [
-            ...processedRows,
-            ...(isNaN(lat) || isNaN(lng) || !name
-              ? []
-              : [
-                  {
-                    lat,
-                    lng,
-                    name,
-                    values: row
-                      .splice(SOURCE.dataStartIndex)
-                      .map(val => parseFloat(val) || 0),
-                  },
-                ]),
-          ];
-        }, []);
-      const availableDays = latLngCountryData[0].values.length;
-      const countryDailyData = latLngCountryData.reduce(
-        (countryValuesKeyedByName, { name, values }) => ({
-          ...countryValuesKeyedByName,
-          [name]: (() => {
-            const dayValues = countryValuesKeyedByName[name];
-            if (dayValues) {
-              return values.map((val, dayOffset) => val + dayValues[dayOffset]);
-            }
-            return values;
-          })(),
-        }),
-        {},
+      const { data, locations, meta } = res;
+      const { cases_index } = meta;
+      const sortedDates = Object.keys(data).sort(
+        (a, b) => new Date(a) - new Date(b),
       );
-      const countryNames = Object.keys(countryDailyData);
-      const chartData = range(availableDays).reduce(
-        (dates, dayOffset) => [
-          ...dates,
+      const chartData = sortedDates.reduce(
+        (acc, cur) => [
+          ...acc,
           [
-            firstDate
-              .clone()
-              .add(dayOffset, 'days')
+            moment(cur)
+              .utc()
               .format('YYYY-MM-DD'),
             new Map(
-              countryNames.map(name => [
-                name,
-                countryDailyData[name][dayOffset],
-              ]),
+              Object.keys(locations)
+                .map(countryIsoCode => [
+                  locations[countryIsoCode].name,
+                  data[cur][countryIsoCode]?.[cases_index] || 0,
+                ]),
             ),
           ],
         ],
         [],
       );
-      const globeData = range(availableDays).map(index => {
-        const max = latLngCountryData.reduce(
-          (acc, cur) => Math.max(acc, cur.values[index]),
-          0,
-        );
-        return latLngCountryData.reduce(
-          (acc, cur) => [...acc, cur.lat, cur.lng, cur.values[index] / max],
-          [],
-        );
+      const globeData = sortedDates.map(cur => {
+        const max = Object.keys(locations)
+          .filter(key => key !== WORLD_KEY)
+          .reduce(
+            (maxValue, countryIsoCode) =>
+              Math.max(maxValue, data[cur][countryIsoCode]?.[cases_index] || 0),
+            0,
+          );
+        return Object.keys(locations)
+          .sort()
+          .filter(key => key !== WORLD_KEY)
+          .map(countryIsoCode => [
+            locations[countryIsoCode].lat,
+            locations[countryIsoCode].lng,
+            (data[cur][countryIsoCode]?.[cases_index] || 0) / max,
+          ])
+          .reduce((flatArr, arr) => [...flatArr, ...arr], []);
       });
+      const countryNames = Object.keys(locations)
+        .filter(key => key !== WORLD_KEY)
+        .map(key => locations[key].name);
 
       globe.initialize();
       globe.loadAnimationData(globeData);
@@ -104,17 +66,19 @@
       animationPlayer.addItem(raceChart);
       animationPlayer.play(globeData.length);
 
-      const body = document.body;
-      body.style.backgroundImage = 'none'
+      const { body } = document;
+      body.style.backgroundImage = 'none';
       body.style.height = '100%';
       const chartElement = document.getElementsByClassName('chart')[0];
-      const controllerElement = document.getElementsByClassName('controller')[0];
+      const controllerElement = document.getElementsByClassName(
+        'controller',
+      )[0];
       chartElement.classList.remove('hidden');
       controllerElement.classList.remove('hidden');
     });
 
   console.log(
-`
+    `
  @@@@@@  @@@ @@@      @@@ @@@  @@@  @@@@@@@          
 @@!  @@@ @@! @@!      @@! @@!@!@@@ !@@               
 @!@!@!@! !!@ @!!      !!@ @!@@!!@! !@! @!@!@         
@@ -131,6 +95,6 @@
 By Edward Njoroge
 
 Find the source code here: https://github.com/codingedward/ailing-planet 
-`
+`,
   );
 })();
