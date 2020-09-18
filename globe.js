@@ -373,6 +373,9 @@
       hoveredCountry.mesh.matrixAutoUpdate = false;
       hoveredCountry.mesh.updateMatrix();
       scene.add(hoveredCountry.mesh);
+    } else if (!country && hoveredCountry.mesh) {
+      scene.remove(hoveredCountry.mesh);
+      hoveredCountry = { mesh: null, ISO_A3: null };
     }
   }
 
