@@ -1,24 +1,29 @@
-// borrowed from: https://observablehq.com/@d3/bar-chart-race-explained
+// Borrowed from: https://observablehq.com/@d3/bar-chart-race-explained
 (function() {
   const k = 6;
   const n = 10;
   const width = 300;
-  const duration = 250;
   const barSize = 48;
+  const duration = 250;
+  const dateWidth = 200;
+  const dateHeight = 50;
   const color = '#ff0000';
   const margin = { top: 16, right: 6, bottom: 6, left: 0 };
   const height = margin.top + barSize * n + margin.bottom;
 
   let xAxis;
   let svg;
+  let dateSvg;
   let d3Data;
   let d3Names;
   let keyframes;
   let updateBars;
   let updateLabels;
+  let updateTicker;
 
-  function runChart() {
+  function animate() {
     const formatNumber = d3.format(',d');
+    const formatDate = d3.utcFormat("%d %B %Y");
 
     const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
     xAxis = x;
@@ -33,6 +38,12 @@
       .append('svg')
       .attr('width', width)
       .attr('height', height);
+
+    dateSvg = d3
+      .select('.date')
+      .append('svg')
+      .attr('width', dateWidth)
+      .attr('height', dateHeight);
 
     const rank = value => {
       const data = Array.from(d3Names, name => ({
@@ -168,30 +179,41 @@
           ));
     }
 
+    function ticker(svg) {
+      const now = svg.append("text")
+          .attr("fill", "#999999")
+          .attr("font-size", "20px")
+          .attr("text-anchor", "middle")
+          .attr("y", 35)
+          .attr("x", 100)
+          .text(formatDate(keyframes[0][0]));
+      return ([date]) => {
+        now.text(formatDate(date));
+      };
+    }
+
     function textTween(a, b) {
+      /*
       return function() {
         this.textContent = formatNumber(b);
       }
-      /*
+      */
       const i = d3.interpolateNumber(a, b);
       return function(t) {
         this.textContent = formatNumber(i(t));
       };
-      */
     }
-
     updateBars = bars(svg);
     updateLabels = labels(svg);
+    updateTicker = ticker(dateSvg);
   }
 
   const chart = {
+    animate,
     initialize: () => {},
     loadAnimationData: (names, data) => {
       d3Names = names;
       d3Data = data;
-    },
-    run: () => {
-      runChart();
     },
     setTime: time => {
       const last = keyframes.length - 1;
@@ -205,6 +227,7 @@
       xAxis.domain([0, keyframe[1][0].value]);
       updateBars(keyframe, transition);
       updateLabels(keyframe, transition);
+      updateTicker(keyframe, transition);
     }
   };
 

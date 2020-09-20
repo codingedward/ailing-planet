@@ -76,7 +76,10 @@
   let isMouseDown;
   let isMouseDragging;
   let mouseDownStartTime;
-  let hoveredCountry = { ISO_A3: null, mesh: null };
+  let focusedCountry = {
+    clicked: { isoCode: null, name: '', mesh: null },
+    hovered: { isoCode: null, name: '', mesh: null },
+  };
   const container = document.getElementsByClassName('container')[0];
 
   function initialize() {
@@ -144,7 +147,7 @@
       sound.setBuffer(buffer);
       sound.setLoop(true);
       sound.setVolume(0.5);
-      //sound.play();
+      // sound.play();
     });
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -223,26 +226,23 @@
         const normal = [Math.sin(lambda), -Math.cos(lambda), 0];
         let angle = 0;
         let winding = 0;
-
         const sum = new d3.Adder();
         if (sinPhi === 1) {
-           phi = Math.HALF_PI + EPSILON;
+          phi = Math.HALF_PI + EPSILON;
         } else if (sinPhi === -1) {
-           phi = -Math.HALF_PI - EPSILON;
+          phi = -Math.HALF_PI - EPSILON;
         }
-
         for (let i = 0, n = polygon.length; i < n; ++i) {
           let ring;
           let m;
           if (!(m = (ring = polygon[i]).length)) {
-           continue;
+            continue;
           }
           let point0 = ring[m - 1];
           let lambda0 = longitude(point0);
           const phi0 = point0[1] / 2 + Math.QUARTER_PI;
           let sinPhi0 = Math.sin(phi0);
           let cosPhi0 = Math.cos(phi0);
-
           let lambda1;
           let point1;
           let sinPhi1;
@@ -266,7 +266,6 @@
             const absDelta = sign * delta;
             const antimeridian = absDelta > Math.PI;
             const k = sinPhi0 * sinPhi1;
-
             sum.add(
               Math.atan2(
                 k * sign * Math.sin(absDelta),
@@ -274,7 +273,6 @@
               ),
             );
             angle += antimeridian ? delta + sign * Math.TAU : delta;
-
             // Are the longitudes either side of the point’s meridian (lambda),
             // and are the latitudes smaller than the parallel (phi)?
             if (antimeridian ^ (lambda0 >= lambda) ^ (lambda1 >= lambda)) {
@@ -291,7 +289,6 @@
             }
           }
         }
-
         // First, determine whether the South pole is inside or outside:
         //
         // It is inside if:
@@ -315,12 +312,13 @@
 
   function mapClientToWorldPoint(point) {
     const x =
-      ((point.x - renderer.domElement.offsetLeft + 0.5) /
-        window.innerWidth  * 2) - 1;
+      ((point.x - renderer.domElement.offsetLeft + 0.5) / window.innerWidth) *
+        2 -
+      1;
     const y =
       -(
-        (point.y - renderer.domElement.offsetTop + 0.5) /
-        window.innerHeight * 2
+        ((point.y - renderer.domElement.offsetTop + 0.5) / window.innerHeight) *
+        2
       ) + 1;
     return { x, y };
   }
@@ -337,48 +335,64 @@
     }
   }
 
-  function onCountryClicked(event) {
-    const country = findCountryForWorldPoint(mapClientToWorldPoint({
-      x: event.clientX,
-      y: event.clientY
-    }));
-    if (country) {
-      window.countryStats.setActiveCountry(country.properties);
+  function setFocusOnCountry({ country, scope, color }) {
+    if (
+      country &&
+      country.properties.ISO_A3 !== focusedCountry[scope].isoCode
+    ) {
+      if (focusedCountry[scope].mesh) {
+        scene.remove(focusedCountry[scope].mesh);
+      }
+      const mesh = new THREE.LineSegments(
+        new THREE.GeoJsonGeometry(country.geometry, GLOBE_RADIUS + 0.5),
+        new THREE.LineBasicMaterial({ color }),
+      );
+      mesh.rotation.y = 1.5 * Math.PI;
+      mesh.matrixAutoUpdate = false;
+      mesh.updateMatrix();
+      focusedCountry = {
+        ...focusedCountry,
+        [scope]: {
+          mesh,
+          name: country.properties.NAME,
+          isoCode: country.properties.ISO_A3,
+        },
+      };
+      scene.add(mesh);
+    } else if (!country && focusedCountry[scope].mesh) {
+      scene.remove(focusedCountry[scope].mesh);
+      focusedCountry = {
+        ...focusedCountry,
+        [scope]: { mesh: null, isoCode: null, name: '' },
+      };
+    }
+    if (country || (scope === 'hovered' && focusedCountry.clicked.mesh)) {
+      countryStats.setActiveCountry(
+        focusedCountry[country ? scope : 'clicked'],
+      );
     } else {
-      window.countryStats.setActiveCountry(null);
+      countryStats.setActiveCountry(null);
     }
   }
 
-  function onCountryHovered(event) {
-    const country = findCountryForWorldPoint(mapClientToWorldPoint({
-      x: event.clientX,
-      y: event.clientY
-    }));
+  function onCountryClicked(event) {
+    const country = findCountryForWorldPoint(
+      mapClientToWorldPoint({
+        x: event.clientX,
+        y: event.clientY,
+      }),
+    );
+    setFocusOnCountry({ country, scope: 'clicked', color: '#ff0000' });
+  }
 
-    if (country) {
-      window.countryStats.setActiveCountry(country.properties);
-    } else {
-      window.countryStats.setActiveCountry(null);
-    }
-    if (country && country.properties.ISO_A3 !== hoveredCountry.ISO_A3) {
-      if (hoveredCountry.mesh) {
-        scene.remove(hoveredCountry.mesh);
-      }
-      hoveredCountry = {
-        ISO_A3: country.properties.ISO_A3,
-        mesh: new THREE.LineSegments(
-          new THREE.GeoJsonGeometry(country.geometry, GLOBE_RADIUS + 0.5),
-          new THREE.LineBasicMaterial({ color: '#999999' }),
-        ),
-      } 
-      hoveredCountry.mesh.rotation.y = 1.5 * Math.PI;
-      hoveredCountry.mesh.matrixAutoUpdate = false;
-      hoveredCountry.mesh.updateMatrix();
-      scene.add(hoveredCountry.mesh);
-    } else if (!country && hoveredCountry.mesh) {
-      scene.remove(hoveredCountry.mesh);
-      hoveredCountry = { mesh: null, ISO_A3: null };
-    }
+  function onCountryHovered(event) {
+    const country = findCountryForWorldPoint(
+      mapClientToWorldPoint({
+        x: event.clientX,
+        y: event.clientY,
+      }),
+    );
+    setFocusOnCountry({ country, scope: 'hovered', color: '#aa0000' });
   }
 
   function onMouseDown(event) {

@@ -28,59 +28,41 @@
         {},
       );
       const chartData = sortedDates.reduce(
-        (acc, cur) => [
-          ...acc,
+        (datesData, date) => [
+          ...datesData,
           [
-            cur,
+            new Date(date),
             new Map(
               locationIsoCodes.map(countryIsoCode => [
                 locations[countryIsoCode].name,
-                data[cur][countryIsoCode][cases_index],
+                data[date][countryIsoCode][cases_index],
               ]),
             ),
           ],
         ],
         [],
       );
-      const previousValues = {};
-      const globeData = sortedDates.map((cur, i) => {
+      const globeData = sortedDates.map(date => {
         const max = locationIsoCodes.reduce(
           (maxValue, countryIsoCode) =>
-            Math.max(maxValue, data[cur][countryIsoCode][cases_index]),
+            Math.max(maxValue, data[date][countryIsoCode][cases_index]),
           0,
         );
         return locationIsoCodes
-          .map(countryIsoCode => {
-            const value = (data[cur][countryIsoCode][cases_index]) / max;
-            if (i > 0 && previousValues[countryIsoCode] > 0 &&  value === 0) {
-              console.log({
-                date: cur,
-                countryIsoCode,
-                name: locations[countryIsoCode].name,
-                prev: previousValues[countryIsoCode],
-                cases: data[cur][countryIsoCode][cases_index],
-                prevDate: moment.utc(cur).subtract(1, 'days').format('YYYY-MM-DD'),
-                prevCases: data[moment.utc(cur).subtract(1, 'days').format('YYYY-MM-DD')][countryIsoCode][cases_index]
-              });
-            }
-            previousValues[countryIsoCode] = value;
-            return [
+          .map(countryIsoCode => [
               locations[countryIsoCode].lat,
               locations[countryIsoCode].lng,
-              value,
-            ];
-          })
+              (data[date][countryIsoCode][cases_index]) / max,
+          ])
           .reduce((flatArr, arr) => [...flatArr, ...arr], []);
       });
       const countryNames = locationIsoCodes.map(key => locations[key].name);
 
       globe.initialize();
       globe.loadAnimationData(globeData);
-      globe.animate();
 
       raceChart.initialize();
       raceChart.loadAnimationData(countryNames, chartData);
-      raceChart.run();
 
       animationPlayer.addItem(globe);
       animationPlayer.addItem(raceChart);

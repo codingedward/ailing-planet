@@ -74,6 +74,11 @@
     addItem: item => items.push(item),
     play: () => {
       init();
+      items.forEach(item => {
+        if (item !== slider) {
+          item.animate()
+        }
+      });
       animate();
     },
   };

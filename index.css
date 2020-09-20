@@ -6,7 +6,7 @@ body {
   margin: 0;
   padding: 0;
   background: #000000 url('/img/loading.gif') center center no-repeat;
-  color: #ffffff;
+  color: #999999;
   font-family: sans-serif;
   font-size: 13px;
   line-height: 20px;
@@ -27,13 +27,25 @@ canvas { display: block; }
   z-index: 10;
   user-select: none;
   pointer-events: none;
+  top: 0;
+  left: 0;
+}
+
+.date {
+  position: absolute;
+  z-index: 10;
+  user-select: none;
+  pointer-events: none;
+  top: 0;
+  width: 200px;
+  left: calc(50% - 100px);
 }
 
 .country-stats {
-  padding: 20px;
-  z-index: 11;
-  position: absolute;
   right: 0;
+  z-index: 11;
+  padding: 8px 20px;
+  position: absolute;
   min-width: 200px;
 }
 
@@ -88,6 +100,10 @@ canvas { display: block; }
 
 .noUi-handle:after, .noUi-handle:before {
   display: none;
+}
+
+.noUi-connects {
+  background-color: #999;
 }
 
 .playback-button-wrapper {

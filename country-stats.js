@@ -9,7 +9,7 @@
   function setActiveCountry(country) {
     if (country) {
       countryStatsElement.classList.remove('hidden');
-      nameElement.innerText = country.NAME || '';
+      nameElement.innerText = country.name || '';
     } else {
       nameElement.innerText = 'World';
       //countryStatsElement.classList.add('hidden');
