@@ -62,7 +62,12 @@
       globe.loadAnimationData(globeData);
 
       raceChart.initialize();
-      raceChart.loadAnimationData(countryNames, chartData);
+      raceChart.loadAnimationData({
+        chartData,
+        countryNames, 
+        countriesData: data,
+        activeIndex: cases_index
+      });
 
       animationPlayer.addItem(globe);
       animationPlayer.addItem(raceChart);
@@ -72,15 +77,17 @@
       body.style.backgroundImage = 'none';
       body.style.height = '100%';
       const chartElement = document.getElementsByClassName('chart')[0];
+      const countryStatElement = document.getElementsByClassName('country-stats')[0];
       const controllerElement = document.getElementsByClassName(
         'controller',
       )[0];
       chartElement.classList.remove('hidden');
       controllerElement.classList.remove('hidden');
+      countryStatElement.classList.remove('hidden');
     });
 
   console.log(
-    `
+`
  @@@@@@  @@@ @@@      @@@ @@@  @@@  @@@@@@@          
 @@!  @@@ @@! @@!      @@! @@!@!@@@ !@@               
 @!@!@!@! !!@ @!!      !!@ @!@@!!@! !@! @!@!@         
