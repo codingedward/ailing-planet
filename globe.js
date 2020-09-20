@@ -144,7 +144,7 @@
       sound.setBuffer(buffer);
       sound.setLoop(true);
       sound.setVolume(0.5);
-      sound.play();
+      //sound.play();
     });
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -346,10 +346,6 @@
       window.countryStats.setActiveCountry(country.properties);
     } else {
       window.countryStats.setActiveCountry(null);
-      if (hoveredCountry.mesh) {
-        scene.remove(hoveredCountry.mesh);
-        hoveredCountry = { mesh: null, ISO_A3: null }
-      }
     }
   }
 
@@ -358,6 +354,12 @@
       x: event.clientX,
       y: event.clientY
     }));
+
+    if (country) {
+      window.countryStats.setActiveCountry(country.properties);
+    } else {
+      window.countryStats.setActiveCountry(null);
+    }
     if (country && country.properties.ISO_A3 !== hoveredCountry.ISO_A3) {
       if (hoveredCountry.mesh) {
         scene.remove(hoveredCountry.mesh);
@@ -478,12 +480,8 @@
   }
 
   const globe = {
-    initialize: () => {
-      initialize();
-    },
-    run: () => {
-      animate();
-    },
+    animate,
+    initialize,
     loadAnimationData: animationDataArrays => {
       const addAnimationFramePoints = ({
         dataArray,

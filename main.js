@@ -1,62 +1,82 @@
 (function() {
-  /*
   if (!window.isWebGLAvailable()) {
     return;
   }
-  */
   const WORLD_KEY = 'OWID_WRL';
-  const range = n => [...Array(n).keys()];
   fetch('./data/data.json', { method: 'GET' })
     .then(res => res.json())
     .then(res => {
-      const { data, locations, meta } = res;
-      const { cases_index } = meta;
-      const sortedDates = Object.keys(data).sort(
+      const { data: dataArg, locations, meta } = res;
+      const locationIsoCodes = Object.keys(locations).filter(
+        key => key && key !== WORLD_KEY,
+      );
+      const sortedDates = Object.keys(dataArg).sort(
         (a, b) => new Date(a) - new Date(b),
+      );
+      const { cases_index } = meta;
+      const data = sortedDates.reduce(
+        (datesData, date) => ({
+          ...datesData,
+          [date]: locationIsoCodes.reduce(
+            (dateData, isoCode) => ({
+              ...dateData,
+              [isoCode]: dataArg[date][isoCode] || [0, 0],
+            }),
+            {},
+          ),
+        }),
+        {},
       );
       const chartData = sortedDates.reduce(
         (acc, cur) => [
           ...acc,
           [
-            moment(cur)
-              .utc()
-              .format('YYYY-MM-DD'),
+            cur,
             new Map(
-              Object.keys(locations)
-                .map(countryIsoCode => [
-                  locations[countryIsoCode].name,
-                  data[cur][countryIsoCode]?.[cases_index] || 0,
-                ]),
+              locationIsoCodes.map(countryIsoCode => [
+                locations[countryIsoCode].name,
+                data[cur][countryIsoCode][cases_index],
+              ]),
             ),
           ],
         ],
         [],
       );
-      const globeData = sortedDates.map(cur => {
-        const max = Object.keys(locations)
-          .filter(key => key !== WORLD_KEY)
-          .reduce(
-            (maxValue, countryIsoCode) =>
-              Math.max(maxValue, data[cur][countryIsoCode]?.[cases_index] || 0),
-            0,
-          );
-        return Object.keys(locations)
-          .sort()
-          .filter(key => key !== WORLD_KEY)
-          .map(countryIsoCode => [
-            locations[countryIsoCode].lat,
-            locations[countryIsoCode].lng,
-            (data[cur][countryIsoCode]?.[cases_index] || 0) / max,
-          ])
+      const previousValues = {};
+      const globeData = sortedDates.map((cur, i) => {
+        const max = locationIsoCodes.reduce(
+          (maxValue, countryIsoCode) =>
+            Math.max(maxValue, data[cur][countryIsoCode][cases_index]),
+          0,
+        );
+        return locationIsoCodes
+          .map(countryIsoCode => {
+            const value = (data[cur][countryIsoCode][cases_index]) / max;
+            if (i > 0 && previousValues[countryIsoCode] > 0 &&  value === 0) {
+              console.log({
+                date: cur,
+                countryIsoCode,
+                name: locations[countryIsoCode].name,
+                prev: previousValues[countryIsoCode],
+                cases: data[cur][countryIsoCode][cases_index],
+                prevDate: moment.utc(cur).subtract(1, 'days').format('YYYY-MM-DD'),
+                prevCases: data[moment.utc(cur).subtract(1, 'days').format('YYYY-MM-DD')][countryIsoCode][cases_index]
+              });
+            }
+            previousValues[countryIsoCode] = value;
+            return [
+              locations[countryIsoCode].lat,
+              locations[countryIsoCode].lng,
+              value,
+            ];
+          })
           .reduce((flatArr, arr) => [...flatArr, ...arr], []);
       });
-      const countryNames = Object.keys(locations)
-        .filter(key => key !== WORLD_KEY)
-        .map(key => locations[key].name);
+      const countryNames = locationIsoCodes.map(key => locations[key].name);
 
       globe.initialize();
       globe.loadAnimationData(globeData);
-      globe.run();
+      globe.animate();
 
       raceChart.initialize();
       raceChart.loadAnimationData(countryNames, chartData);
@@ -64,7 +84,7 @@
 
       animationPlayer.addItem(globe);
       animationPlayer.addItem(raceChart);
-      animationPlayer.play(globeData.length);
+      animationPlayer.play();
 
       const { body } = document;
       body.style.backgroundImage = 'none';
