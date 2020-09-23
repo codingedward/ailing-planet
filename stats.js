@@ -16,18 +16,16 @@
   let dateSvg;
   let countrySvg;
   let raceData;
-  let raceNames;
+  let countriesNameMap;
   let keyframes;
   let updateBars;
   let updateLabels;
   let updateTicker;
   let activeCountry = { name: 'Kenya', isoCode: 'KEN' };
-  let countriesData;
-  let dataActiveIndex;
 
   function animate() {
     const formatNumber = d3.format(',d');
-    const formatDate = d3.utcFormat("%d %B %Y");
+    const formatDate = d3.utcFormat('%d %B %Y');
     const formatCountryDateStat = d3.utcFormat('%Y-%m-%d');
 
     const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
@@ -49,18 +47,18 @@
       .append('svg')
       .attr('width', dateWidth)
       .attr('height', dateHeight);
-    
+
     countrySvg = d3
       .select('.country-stats')
       .append('svg')
-      .attr('width', dateWidth)
-      .attr('height', dateHeight);
-    
+      .attr('width', 350)
+      .attr('height', 250);
 
     const rank = value => {
-      const data = Array.from(raceNames, name => ({
-        name,
-        value: value(name),
+      const data = Array.from(countriesNameMap.keys(), isoCode => ({
+        isoCode,
+        name: countriesNameMap.get(isoCode),
+        value: value(isoCode),
       }));
       data.sort((a, b) => d3.descending(a.value, b.value));
       for (let i = 0; i < data.length; ++i) data[i].rank = Math.min(n, i);
@@ -192,45 +190,95 @@
     }
 
     function ticker(svg) {
-      const now = svg.append("text")
-          .attr("fill", "#999999")
-          .attr("font-size", "20px")
-          .attr("text-anchor", "middle")
-          .attr("y", 35)
-          .attr("x", 100)
-          .text(formatDate(keyframes[0][0]));
+      const now = svg
+        .append('text')
+        .attr('fill', '#999999')
+        .attr('font-size', '20px')
+        .attr('text-anchor', 'middle')
+        .attr('y', 35)
+        .attr('x', 100)
+        .text(formatDate(keyframes[0][0]));
       return ([date]) => {
         now.text(formatDate(date));
       };
     }
 
     function countryStats(svg) {
-      const now = svg.append("text")
-          .attr("fill", "#999999")
-          .attr("font-size", "20px")
-          .attr("text-anchor", "middle")
-          .attr("y", 35)
-          .attr("x", 100)
-          .text('');
-      return ([date]) => {
-        const countryData = countriesData[formatCountryDateStat(date)][activeCountry.isoCode];
-        if (countryData) {
-          now.text(formatNumber(countryData[dataActiveIndex]));
-        } else {
-          now.text('')
-        }
+      let stats = svg
+        .append('g')
+        .style('font', 'bold 12px var(--sans-serif)')
+        .style('font-variant-numeric', 'tabular-nums')
+        .selectAll('text');
+      return ([date, data], transition) => {
+        date = formatCountryDateStat(date);
+        return (stats = stats
+          .data(
+            data.filter(({ isoCode }) => isoCode === activeCountry.isoCode),
+            d => d,
+          )
+          .join(
+            enter =>
+              enter
+                .append('text')
+                .attr('fill', '#999999')
+                .attr('y', 35)
+                .attr('x', 0)
+                .call(text =>
+                  text
+                    .append('tspan')
+                    .attr('class', 'countryName')
+                    .attr('font-size', '28px')
+                    .text(() => activeCountry.name),
+                )
+                .call(text =>
+                  text
+                    .append('tspan')
+                    .attr('class', 'countryStatValue')
+                    .attr('font-size', '14px')
+                    .attr('x', 0)
+                    .attr('y', 60)
+                ),
+            update => update,
+            exit =>
+              exit
+                .transition(transition)
+                .remove()
+                .call(g =>
+                  g
+                    .select('.countryName')
+                    .text(() => activeCountry.name),
+                )
+                .call(g =>
+                  g
+                    .select('.countryStatValue')
+                    .tween('text', d =>
+                      textTween(d.value, (next.get(d) || d).value, 'Cases: '),
+                    ),
+                ),
+          )
+          .call(text =>
+            text
+              .transition(transition)
+              .call(g =>
+                g
+                  .select('.countryName')
+                  .text(() => activeCountry.name),
+              )
+              .call(g =>
+                g
+                  .select('.countryStatValue')
+                  .tween('text', d =>
+                    textTween((prev.get(d) || d).value, d.value, 'Cases: '),
+                  ),
+              ),
+          ));
       };
     }
 
-    function textTween(a, b) {
-      /*
-      return function() {
-        this.textContent = formatNumber(b);
-      }
-      */
+    function textTween(a, b, prefix = '') {
       const i = d3.interpolateNumber(a, b);
       return function(t) {
-        this.textContent = formatNumber(i(t));
+        this.textContent = `${prefix}${formatNumber(i(t))}`;
       };
     }
     updateBars = bars(svg);
@@ -242,16 +290,9 @@
   const chart = {
     animate,
     initialize: () => {},
-    loadAnimationData: ({
-      chartData,
-      countryNames, 
-      countriesData: data,
-      activeIndex,
-    }) => {
+    loadAnimationData: ({ chartData, countriesIsoCodeToNameMap }) => {
       raceData = chartData;
-      raceNames = countryNames;
-      countriesData = data;
-      dataActiveIndex = activeIndex;
+      countriesNameMap = countriesIsoCodeToNameMap;
     },
     setActiveCountry: country => {
       if (country) {
@@ -266,16 +307,20 @@
       const scaledTime = time * last + 1;
       const index = Math.min(Math.floor(scaledTime), last);
       const keyframe = keyframes[index];
-      const transition = svg
-        .transition()
-        .duration(duration)
-        .ease(d3.easeLinear);
+      const createTransition = theSvg => 
+        theSvg
+          .transition()
+          .duration(duration)
+          .ease(d3.easeLinear);
       xAxis.domain([0, keyframe[1][0].value]);
-      updateBars(keyframe, transition);
-      updateLabels(keyframe, transition);
-      updateTicker(keyframe, transition);
-      updateCountryStats(keyframe, transition);
-    }
+      const chartTransition = createTransition(svg);
+      updateBars(keyframe, chartTransition);
+      updateLabels(keyframe, chartTransition);
+      updateTicker(keyframe);
+
+      const countryStatsTransition = createTransition(countrySvg);
+      updateCountryStats(keyframe, countryStatsTransition);
+    },
   };
 
   window.countryStats = window.raceChart = chart;

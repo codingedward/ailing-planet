@@ -13,7 +13,7 @@
       const sortedDates = Object.keys(dataArg).sort(
         (a, b) => new Date(a) - new Date(b),
       );
-      const { cases_index } = meta;
+      const { cases_index: dataIndex } = meta;
       const data = sortedDates.reduce(
         (datesData, date) => ({
           ...datesData,
@@ -31,11 +31,11 @@
         (datesData, date) => [
           ...datesData,
           [
-            new Date(date),
+            new Date(`${date} 00:00z`),
             new Map(
-              locationIsoCodes.map(countryIsoCode => [
-                locations[countryIsoCode].name,
-                data[date][countryIsoCode][cases_index],
+              locationIsoCodes.map(isoCode => [
+                isoCode,
+                data[date][isoCode][dataIndex],
               ]),
             ),
           ],
@@ -44,19 +44,24 @@
       );
       const globeData = sortedDates.map(date => {
         const max = locationIsoCodes.reduce(
-          (maxValue, countryIsoCode) =>
-            Math.max(maxValue, data[date][countryIsoCode][cases_index]),
+          (maxValue, isoCode) =>
+            Math.max(maxValue, data[date][isoCode][dataIndex]),
           0,
         );
         return locationIsoCodes
-          .map(countryIsoCode => [
-              locations[countryIsoCode].lat,
-              locations[countryIsoCode].lng,
-              (data[date][countryIsoCode][cases_index]) / max,
+          .map(isoCode => [
+            locations[isoCode].lat,
+            locations[isoCode].lng,
+            data[date][isoCode][dataIndex] / max,
           ])
           .reduce((flatArr, arr) => [...flatArr, ...arr], []);
       });
-      const countryNames = locationIsoCodes.map(key => locations[key].name);
+      const countriesIsoCodeToNameMap = new Map(
+        locationIsoCodes.map(isoCode => [
+          isoCode,
+          locations[isoCode].name,
+        ])
+      );
 
       globe.initialize();
       globe.loadAnimationData(globeData);
@@ -64,11 +69,8 @@
       raceChart.initialize();
       raceChart.loadAnimationData({
         chartData,
-        countryNames, 
-        countriesData: data,
-        activeIndex: cases_index
+        countriesIsoCodeToNameMap,
       });
-
       animationPlayer.addItem(globe);
       animationPlayer.addItem(raceChart);
       animationPlayer.play();
@@ -77,7 +79,9 @@
       body.style.backgroundImage = 'none';
       body.style.height = '100%';
       const chartElement = document.getElementsByClassName('chart')[0];
-      const countryStatElement = document.getElementsByClassName('country-stats')[0];
+      const countryStatElement = document.getElementsByClassName(
+        'country-stats',
+      )[0];
       const controllerElement = document.getElementsByClassName(
         'controller',
       )[0];
@@ -87,7 +91,7 @@
     });
 
   console.log(
-`
+    `
  @@@@@@  @@@ @@@      @@@ @@@  @@@  @@@@@@@          
 @@!  @@@ @@! @@!      @@! @@!@!@@@ !@@               
 @!@!@!@! !!@ @!!      !!@ @!@@!!@! !@! @!@!@         
