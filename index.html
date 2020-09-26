@@ -19,14 +19,14 @@ By Edward Njoroge
 Find the source code here: https://github.com/codingedward/ailing-planet 
 -->
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>Ailing Planet</title>
+  <head>
+    <meta charset="utf-8">
+    <title>Ailing Planet</title>
     <link rel="stylesheet" href="/lib/nouislider.min.css" type="text/css">
     <link rel="stylesheet" href="/index.css" type="text/css">
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon.png">
-	</head>
-	<body>
+  </head>
+  <body>
     <div class="error-message hidden"></div>
     <div class="chart hidden"></div>
     <div class="date"></div>
@@ -36,22 +36,37 @@ Find the source code here: https://github.com/codingedward/ailing-planet
       <div class="controller-inner">
         <div class="controls">
           <div class="playback-button-wrapper">
-            <button class="playback-button play"></button>
+            <button class="playback-button">
+               <svg width="100%" height="100%" viewBox="0 0 36 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <defs>
+                     <path id="path" d="M 11 10 L 17 10 L 17 26 L 11 26 M 20 10 L 26 10 L 26 26 L 20 26">
+                        <animate id="animation" begin="indefinite" attributeType="XML" attributeName="d" fill="freeze" from="M11,10 L17,10 17,26 11,26 M20,10 L26,10 26,26 20,26" to="M11,10 L18,13.74 18,22.28 11,26 M18,13.74 L26,18 26,18 18,22.28" dur="0.1s" keySplines=".4 0 1 1"
+                        repeatCount="1"></animate>
+                     </path>
+                  </defs>
+                  <use xlink:href="#path"></use>
+                  <use xlink:href="#path"></use>
+               </svg>
+            </button>
           </div>
+          <button class="replay-button">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1em" height="1em" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 0 1 6 6a6 6 0 0 1-6 6a6 6 0 0 1-6-6H4a8 8 0 0 0 8 8a8 8 0 0 0 8-8a8 8 0 0 0-8-8z"/></svg>
+          </button>
         </div>
         <div class="progress"></div>
       </div>
     </div>
-		<script src="//unpkg.com/d3"></script>
-		<script src="//unpkg.com/three"></script>
-		<script src="//unpkg.com/three-geojson-geometry"></script>
-		<script src="//unpkg.com/three-conic-polygon-geometry"></script>
-		<script src="//unpkg.com/nouislider"></script>
-		<script src="./lib/countries.js"></script>
-		<script src="./webgl-check.js"></script>
-		<script src="./globe.js"></script>
-		<script src="./stats.js"></script>
-		<script src="./player.js"></script>
-		<script src="./main.js"></script>
-	</body>
+    <!--script src="//unpkg.com/d3@6.2"></script-->
+    <script src="https://unpkg.com/d3@6.2.0/dist/d3.js"></script>
+    <script src="//unpkg.com/three@0.120"></script>
+    <script src="//unpkg.com/three-geojson-geometry@1.1"></script>
+    <script src="//unpkg.com/nouislider"></script>
+    <script src="./lib/three-buffer-geometry-utils.js"></script>
+    <script src="./lib/countries.js"></script>
+    <script src="./webgl-check.js"></script>
+    <script src="./globe.js"></script>
+    <script src="./stats.js"></script>
+    <script src="./player.js"></script>
+    <script src="./main.js"></script>
+  </body>
 </html>

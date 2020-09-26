@@ -94,21 +94,19 @@
       ),
     );
 
-    const polygonMeshes = [];
-    countries.features.forEach(({ geometry }) => {
-      polygonMeshes.push(
-        new THREE.LineSegments(
-          new THREE.GeoJsonGeometry(geometry, GLOBE_RADIUS),
-          new THREE.LineBasicMaterial({ color: '#440000' }),
+    const countryPolygons = new THREE.LineSegments(
+      THREE.BufferGeometryUtils.mergeBufferGeometries(
+        countries.features.map(
+          country => new THREE.GeoJsonGeometry(country.geometry, GLOBE_RADIUS),
         ),
-      );
-    });
-    polygonMeshes.forEach(mesh => {
-      mesh.rotation.y = 1.5 * Math.PI;
-      mesh.matrixAutoUpdate = false;
-      mesh.updateMatrix();
-      scene.add(mesh);
-    });
+        false,
+      ),
+      new THREE.LineBasicMaterial({ color: '#440000' }),
+    );
+    countryPolygons.rotation.y = 1.5 * Math.PI;
+    countryPolygons.matrixAutoUpdate = false;
+    countryPolygons.updateMatrix();
+    scene.add(countryPolygons);
 
     const geometry = new THREE.SphereBufferGeometry(GLOBE_RADIUS, 40, 30);
     const earthMaterial = new THREE.ShaderMaterial(SHADERS.earth);
@@ -152,7 +150,7 @@
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(WIDTH, HEIGHT);
-    renderer.setPixelRatio(PIXEL_RATIO);
+    // renderer.setPixelRatio(PIXEL_RATIO);
     renderer.domElement.style.position = 'absolute';
     container.appendChild(renderer.domElement);
 
@@ -342,6 +340,8 @@
     ) {
       if (focusedCountry[scope].mesh) {
         scene.remove(focusedCountry[scope].mesh);
+        focusedCountry[scope].mesh.geometry.dispose();
+        focusedCountry[scope].mesh.material.dispose();
       }
       const mesh = new THREE.LineSegments(
         new THREE.GeoJsonGeometry(country.geometry, GLOBE_RADIUS + 0.5),
@@ -361,6 +361,8 @@
       scene.add(mesh);
     } else if (!country && focusedCountry[scope].mesh) {
       scene.remove(focusedCountry[scope].mesh);
+      focusedCountry[scope].mesh.geometry.dispose();
+      focusedCountry[scope].mesh.material.dispose();
       focusedCountry = {
         ...focusedCountry,
         [scope]: { mesh: null, isoCode: null, name: '' },
@@ -488,7 +490,9 @@
   }
 
   function animate() {
-    target.x -= 0.0002;
+    if (window.isAnimationPlaying) {
+      target.x -= 0.0002;
+    }
     requestAnimationFrame(animate);
     render();
   }

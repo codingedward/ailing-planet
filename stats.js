@@ -1,10 +1,10 @@
-// Borrowed from: https://observablehq.com/@d3/bar-chart-race-explained
+// This is mostly borrowed from: https://observablehq.com/@d3/bar-chart-race-explained.
 (function() {
   const k = 6;
   const n = 10;
   const width = 300;
   const barSize = 48;
-  const duration = 250;
+  const duration = 50;
   const dateWidth = 200;
   const dateHeight = 50;
   const color = '#ff0000';
@@ -16,12 +16,14 @@
   let dateSvg;
   let countrySvg;
   let raceData;
-  let countriesNameMap;
+  let locationsNameMap;
   let keyframes;
+  let currentKeyFrameIndex;
   let updateBars;
   let updateLabels;
   let updateTicker;
-  let activeCountry = { name: 'Kenya', isoCode: 'KEN' };
+  const defaultActiveLocation = { name: 'World', isoCode: 'OWID_WRL' };
+  let activeLocation = defaultActiveLocation;
 
   function animate() {
     const formatNumber = d3.format(',d');
@@ -55,13 +57,27 @@
       .attr('height', 250);
 
     const rank = value => {
-      const data = Array.from(countriesNameMap.keys(), isoCode => ({
+      const data = Array.from(locationsNameMap.keys(), isoCode => ({
         isoCode,
-        name: countriesNameMap.get(isoCode),
+        name: locationsNameMap.get(isoCode),
         value: value(isoCode),
       }));
-      data.sort((a, b) => d3.descending(a.value, b.value));
-      for (let i = 0; i < data.length; ++i) data[i].rank = Math.min(n, i);
+      data.sort((a, b) => {
+        if (a.isoCode === 'OWID_WRL') {
+          return 1;
+        }
+        if (b.isoCode === 'OWID_WRL') {
+          return -1;
+        }
+        return b.value - a.value;
+      });
+      for (let i = 0; i < data.length; ++i) {
+        if (data[i].isoCode === 'OWID_WRL') {
+          data[i].rank = n;
+        } else {
+          data[i].rank = Math.min(n, i);
+        }
+      }
       return data;
     };
 
@@ -88,7 +104,6 @@
       nameframes.flatMap(([, data]) => d3.pairs(data, (a, b) => [b, a])),
     );
     const next = new Map(nameframes.flatMap(([, data]) => d3.pairs(data)));
-
     function bars(svg) {
       let bar = svg
         .append('g')
@@ -207,13 +222,14 @@
       let stats = svg
         .append('g')
         .style('font', 'bold 12px var(--sans-serif)')
+        .attr('text-anchor', 'end')
         .style('font-variant-numeric', 'tabular-nums')
         .selectAll('text');
       return ([date, data], transition) => {
         date = formatCountryDateStat(date);
         return (stats = stats
           .data(
-            data.filter(({ isoCode }) => isoCode === activeCountry.isoCode),
+            data.filter(({ isoCode }) => isoCode === activeLocation.isoCode),
             d => d,
           )
           .join(
@@ -222,20 +238,20 @@
                 .append('text')
                 .attr('fill', '#999999')
                 .attr('y', 35)
-                .attr('x', 0)
+                .attr('x', 340)
                 .call(text =>
                   text
                     .append('tspan')
                     .attr('class', 'countryName')
-                    .attr('font-size', '28px')
-                    .text(() => activeCountry.name),
+                    .attr('font-size', '22px')
+                    .text(d => d.name),
                 )
                 .call(text =>
                   text
                     .append('tspan')
                     .attr('class', 'countryStatValue')
                     .attr('font-size', '14px')
-                    .attr('x', 0)
+                    .attr('x', 340)
                     .attr('y', 60)
                 ),
             update => update,
@@ -246,7 +262,7 @@
                 .call(g =>
                   g
                     .select('.countryName')
-                    .text(() => activeCountry.name),
+                    .text(d => d.name),
                 )
                 .call(g =>
                   g
@@ -262,7 +278,7 @@
               .call(g =>
                 g
                   .select('.countryName')
-                  .text(() => activeCountry.name),
+                  .text(d => d.name),
               )
               .call(g =>
                 g
@@ -290,23 +306,27 @@
   const chart = {
     animate,
     initialize: () => {},
-    loadAnimationData: ({ chartData, countriesIsoCodeToNameMap }) => {
+    loadAnimationData: ({ chartData, locationIsoCodeToNameMap }) => {
       raceData = chartData;
-      countriesNameMap = countriesIsoCodeToNameMap;
+      locationsNameMap = locationIsoCodeToNameMap;
     },
     setActiveCountry: country => {
       if (country) {
         const { isoCode, name } = country;
-        activeCountry = { isoCode, name };
+        activeLocation = { isoCode, name };
       } else {
-        activeCountry = { isoCode: null, name: '' };
+        activeLocation = defaultActiveLocation;
+      }
+      if (!window.isAnimationPlaying || window.isPlaybackFinished) {
+        const keyframe = keyframes[currentKeyFrameIndex];
+        updateCountryStats(keyframe, countrySvg.transition().duration(0));
       }
     },
     setTime: time => {
       const last = keyframes.length - 1;
       const scaledTime = time * last + 1;
-      const index = Math.min(Math.floor(scaledTime), last);
-      const keyframe = keyframes[index];
+      currentKeyFrameIndex = Math.min(Math.floor(scaledTime), last);
+      const keyframe = keyframes[currentKeyFrameIndex];
       const createTransition = theSvg => 
         theSvg
           .transition()

@@ -44,6 +44,8 @@ canvas { display: block; }
 .country-stats {
   right: 0;
   z-index: 11;
+  user-select: none;
+  pointer-events: none;
   padding: 8px 20px;
   position: absolute;
   min-width: 200px;
@@ -113,38 +115,45 @@ canvas { display: block; }
   border: 1px solid #fff;
   border-radius: 50%;
   margin-bottom: 10px;
+  position: relative;
 }
 
 .playback-button {
+  cursor: pointer;
+  outline: none;
   border: 0;
   background: transparent;
-  box-sizing: border-box;
-  width: 0;
-  height: 16px;
+  fill: #fff;
+  opacity: 0.85;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
 
-  transition: 100ms all;
-
-  border-color: transparent transparent transparent #fff;
+.replay-button {
   cursor: pointer;
-
-  border-style: solid;
-  border-width: 8px 0 8px 14px;
   outline: none;
-}
-
-.playback-button.play {
-  margin-top: 9px;
+  border: 0;
+  background: transparent;
+  opacity: 0.85;
+  padding: 0;
+  margin: 0;
   margin-left: 12px;
+  margin-right: -48px;
+  font-size: 24px;
 }
 
-.playback-button.pause {
-  margin-top: 10px;
-  margin-left: 11px;
-  height: 16px;
-  border-style: double;
-  border-width: 0px 0 0px 14px;
+.replay-button svg {
+  fill: #888;
 }
 
-.playback-button:hover {
-  border-color: transparent transparent transparent #ccc;
+.replay-button svg:hover {
+  fill: #ff0000;
+}
+
+
+.replay-button.enabled svg {
+  fill: #ff0000;
 }
