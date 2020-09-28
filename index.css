@@ -1,4 +1,4 @@
-html {
+html, body, .content {
   height: 100%;
 }
 
@@ -14,8 +14,17 @@ body {
 
 canvas { display: block; }
 
+.content.blurred {
+  filter: blur(2px);
+  pointer-events: all;
+}
+
 .hidden {
   display: none !important;
+}
+
+.invisible {
+  visibility: hidden !important;
 }
 
 .error-message {
@@ -37,8 +46,8 @@ canvas { display: block; }
   user-select: none;
   pointer-events: none;
   top: 0;
-  width: 200px;
-  left: calc(50% - 100px);
+  width: 300px;
+  left: calc(50% - 150px);
 }
 
 .country-stats {
@@ -67,6 +76,7 @@ canvas { display: block; }
 .controller .controls {
   display: flex;
   justify-content: center;
+  position: relative;
 }
 
 .controller .progress {
@@ -116,6 +126,8 @@ canvas { display: block; }
   border-radius: 50%;
   margin-bottom: 10px;
   position: relative;
+  margin-right: 20px;
+  margin-left: 20px;
 }
 
 .playback-button {
@@ -141,19 +153,63 @@ canvas { display: block; }
   padding: 0;
   margin: 0;
   margin-left: 12px;
-  margin-right: -48px;
+  margin-right: 0;
   font-size: 24px;
 }
 
 .replay-button svg {
-  fill: #888;
+  fill: #fff;
 }
 
 .replay-button svg:hover {
   fill: #ff0000;
 }
 
-
 .replay-button.enabled svg {
   fill: #ff0000;
+}
+
+.dataset-select {
+  margin-top: -69px;
+  margin-right: -70px;
+}
+
+.dataset-select-list {
+  background-color: #fff;
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+}
+
+.dataset-select-list-item {
+  color: #000;
+  cursor: pointer;
+  transition: color 0.3s, background-color 0.3s;
+  padding: 4px 14px;
+  font-size: 14px;
+}
+
+.dataset-select-list-item:first-of-type {
+  border-bottom: 1px solid #ccc;
+}
+
+.dataset-select-list-item:hover {
+  color: #fff;
+  background-color: #cc0000;
+}
+
+.dataset-select-list-item.active {
+  color: #fff;
+  background-color: #cc0000;
+}
+
+.dataset-select-button {
+  cursor: pointer;
+  outline: none;
+  border: 0;
+  background: transparent;
+  opacity: 0.85;
+  padding: 0;
+  margin: 0;
+  font-size: 22px;
 }
