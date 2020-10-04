@@ -21,13 +21,76 @@ Find the source code here: https://github.com/codingedward/ailing-planet
 <html>
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Ailing Planet</title>
     <link rel="stylesheet" href="/lib/nouislider.min.css" type="text/css">
     <link rel="stylesheet" href="/index.css" type="text/css">
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div class="content switching-dataset">
+    <div class="about-card hidden">
+      <span class="about-card-close">
+         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           viewBox="0 0 496.096 496.096">
+            <path d="M259.41,247.998L493.754,13.654c3.123-3.124,3.123-8.188,0-11.312c-3.124-3.123-8.188-3.123-11.312,0L248.098,236.686
+              L13.754,2.342C10.576-0.727,5.512-0.639,2.442,2.539c-2.994,3.1-2.994,8.015,0,11.115l234.344,234.344L2.442,482.342
+              c-3.178,3.07-3.266,8.134-0.196,11.312s8.134,3.266,11.312,0.196c0.067-0.064,0.132-0.13,0.196-0.196L248.098,259.31
+              l234.344,234.344c3.178,3.07,8.242,2.982,11.312-0.196c2.995-3.1,2.995-8.016,0-11.116L259.41,247.998z"/>
+        </svg>       
+      </span>
+      <h1>Ailing Planet</h1>
+      <p>
+        The goal of this project is to provide an interactive timelapse of the COVID-19
+        pandemic. While there are many projects that provide realtime data, 
+        I could not find one that could show the story of how the pandemic unraveled 
+        and so I built one.
+      </p>
+      <p>I hope it proves useful to you.</p>
+      <h3>Credits</h3>
+      <p>
+        This project would not have been possible without the existence of and 
+        inspiration from the following projects:
+      </p>
+      <ul>
+        <li>
+          <a target="_blank" href="https://ourworldindata.org/">Our World In Data</a>
+          (OWID) which has a <a target="_blank" href="https://ourworldindata.org/coronavirus">project</a>
+          to collect, clean and make public COVID-19 data.
+        </li>
+        <li>
+          <a target="_blank" href="https://experiments.withgoogle.com/chrome/globe">Experiments with Google</a>
+          for inspiration and providing the base code for the globe used on this project.
+        </li>
+        <li>
+          <a target="_blank" href="https://observablehq.com/@d3/bar-chart-race-explained">ObservableHQ</a>'s
+          resource on creating a data race chart.
+        </li>
+      </ul>
+      <h3>Attributions</h3>
+      <ul>
+        <li>
+          Kawaii Coffee icon by <a target="_blank" href="https://icons8.com/icon/120078/kawaii-coffee">Icons8</a>.
+        </li>
+        <li>
+          Ulukai's Space Skyboxes by <a target="_blank" href="https://opengameart.org/content/ulukais-space-skyboxes">Calinou</a>.
+        </li>
+      </ul>
+      <h3>Source Code</h3>
+      <p>
+      You can find the source code <a target="_blank" href="https://github.com/codingedward/ailing-planet">here</a>.
+      </p>
+      <h3>Designer & Developer</h3>
+      <p>
+        Built with &lt;3 by <a target="_blank" href="https://github.com/codingedward">Edward Njoroge</a>
+        (<a target="_blank" href="https://twitter.com/codingedward">@codingedward</a>). If you'd like to, you can:
+      </p>
+      <a style="text-align: center; display: block;" target="_blank" href="https://www.buymeacoffee.com/codingedward">
+        <img src="https://img.icons8.com/ios/38/ff0000/kawaii-coffee.png"/><br/>
+        Buy me a Coffee
+      </a>
+    </div>
+    <div class="content">
       <div class="error-message hidden"></div>
       <div class="chart hidden"></div>
       <div class="date"></div>
@@ -37,7 +100,9 @@ Find the source code here: https://github.com/codingedward/ailing-planet
         <div class="controller-inner">
           <div class="controls">
             <button class="replay-button">
-              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1em" height="1em" style="-ms-transform: rotate(320deg); -webkit-transform: rotate(320deg); transform: rotate(320deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 0 1 6 6a6 6 0 0 1-6 6a6 6 0 0 1-6-6H4a8 8 0 0 0 8 8a8 8 0 0 0 8-8a8 8 0 0 0-8-8z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1em" height="1em" style="-ms-transform: rotate(320deg); -webkit-transform: rotate(320deg); transform: rotate(320deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24">
+                <path d="M12 5V1L7 6l5 5V7a6 6 0 0 1 6 6a6 6 0 0 1-6 6a6 6 0 0 1-6-6H4a8 8 0 0 0 8 8a8 8 0 0 0 8-8a8 8 0 0 0-8-8z"/>
+              </svg>
             </button>
             <div class="playback-button-wrapper">
               <button class="playback-button">
@@ -62,14 +127,15 @@ Find the source code here: https://github.com/codingedward/ailing-planet
                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="0.9em" height="1em" style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 740 830"><path d="M722 424q12 9 9 24q-11 46-33 86q-3 7-9 10t-15 1q-22-4-43 2t-39 24t-23 40t-2 46q3 16-10 24q-41 24-82 35q-16 5-26-10q-12-20-32-32t-46-12t-45 12t-34 32q-9 15-25 10q-44-12-82-35q-15-8-11-24q5-23-1-46t-23-40t-39-24t-44-2q-16 4-24-11q-22-42-32-86q-5-15 9-24q17-13 28-33t10.5-42t-9.5-40t-25-31q-12-11-8-24q15-48 40-89q7-12 20-10q20 2 40-5t34-22q29-29 27-69q-1-13 11-20q44-26 94-38q13-3 21 6q13 14 31 22t37 8t37-8t30-22q9-9 22-6q50 12 94 38q11 6 11 20q-2 40 27 69q15 15 34 22t39 5q13-2 21 10q25 41 40 89q3 14-8 24q-16 13-25 31t-9 40.5t11 41.5t27 33zm-351 76q29 0 55-11t44-30t29-44t11-54t-11-55t-29-44t-44-29t-55-11t-54 11t-44 29t-30 44t-11 55t11 54t30 44t44 30t54 11z" fill="#fff"/></svg>
               </button>
             </div>
+            <div class="about">
+              <span>?</span>
+            </div>
           </div>
           <div class="progress"></div>
         </div>
       </div>
-      
     </div>
-    <!--script src="//unpkg.com/d3@6.2"></script-->
-    <script src="https://unpkg.com/d3@6.2.0/dist/d3.js"></script>
+    <script src="//unpkg.com/d3@6.2"></script>
     <script src="//unpkg.com/three@0.120"></script>
     <script src="//unpkg.com/three-geojson-geometry@1.1"></script>
     <script src="//unpkg.com/nouislider"></script>

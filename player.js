@@ -67,6 +67,26 @@
       },
       false,
     );
+    const [aboutCard] = document.getElementsByClassName('about-card');
+    const [aboutButton] = document.getElementsByClassName('about');
+    const [aboutCardClose] = document.getElementsByClassName('about-card-close');
+    const [contentElement] = document.getElementsByClassName('content');
+    aboutButton.addEventListener(
+    'click',
+      e => {
+        e.stopPropagation();
+        contentElement.classList.add('blurred');
+        aboutCard.classList.remove('hidden');
+      }
+    );
+    aboutCardClose.addEventListener(
+      'click',
+      e => {
+        e.stopPropagation();
+        contentElement.classList.remove('blurred');
+        aboutCard.classList.add('hidden');
+      }
+    )
   }
 
   function toggleIsAnimationPlaying() {

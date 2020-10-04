@@ -2,7 +2,7 @@
 (function() {
   const WORLD_ISO_CODE = 'OWID_WRL';
   const k = 6;
-  const n = 5;
+  const n = 10;
   const width = 300;
   const barSize = 48;
   const duration = 50;
@@ -46,7 +46,7 @@
       .select('.country-stats')
       .append('svg')
       .attr('width', 350)
-      .attr('height', 250);
+      .attr('height', 220);
   }
 
   function processAnimationData() {
@@ -156,8 +156,6 @@
     function labels(svg) {
       let label = svg
         .append('g')
-        .style('font', 'bold 12px var(--sans-serif)')
-        .style('font-variant-numeric', 'tabular-nums')
         .attr('text-anchor', 'end')
         .selectAll('text');
       return ([, data], transition) => {
@@ -265,7 +263,7 @@
       let stats = svg
         .append('g')
         .style('font', 'bold 12px var(--sans-serif)')
-        .attr('text-anchor', 'end')
+        //.attr('text-anchor', 'end')
         .style('font-variant-numeric', 'tabular-nums')
         .selectAll('text');
       return ([date, data], transition) => {
@@ -281,7 +279,7 @@
                 .append('text')
                 .attr('fill', '#999999')
                 .attr('y', 35)
-                .attr('x', 340)
+                .attr('x', 0)
                 .call(text =>
                   text
                     .append('tspan')
@@ -294,7 +292,7 @@
                     .append('tspan')
                     .attr('class', 'countryStatValue')
                     .attr('font-size', '16px')
-                    .attr('x', 340)
+                    .attr('x', 0)
                     .attr('y', 60),
                 ),
             update => update,
@@ -369,7 +367,7 @@
       } else {
         activeLocation = defaultActiveLocation;
       }
-      if (!window.isAnimationPlaying || window.isPlaybackFinished) {
+      if (currentKeyFrameIndex && (!window.isAnimationPlaying || window.isPlaybackFinished)) {
         const keyframe = keyframes[currentKeyFrameIndex];
         updateCountryStats(keyframe, countrySvg.transition().duration(0));
       }
@@ -378,6 +376,9 @@
       const last = keyframes.length - 1;
       const scaledTime = time * last + 1;
       currentKeyFrameIndex = Math.min(Math.floor(scaledTime), last);
+      if (currentKeyFrameIndex === last) {
+        return;
+      }
       const keyframe = keyframes[currentKeyFrameIndex];
       const createTransition = theSvg =>
         theSvg

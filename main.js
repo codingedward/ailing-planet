@@ -1,5 +1,10 @@
 (function() {
+
   if (!window.isWebGLAvailable()) {
+    console.log(
+      "%c Here's a nickel kid, go buy yourself a decent browser :)", 
+      'color: #00ff00; font-size: 20px; font-weight: bold; font-family: monospace'
+    );
     return;
   }
 
@@ -8,7 +13,7 @@
   let sortedDates;
   let countryIsoCodes;
   let locationIsoCodes;
-  let activeDataSet = 0;
+  let activeDataSetKey = 0;
   const WORLD_ISO_CODE = 'OWID_WRL';
   const [contentElement] = document.getElementsByClassName('content');
 
@@ -30,10 +35,7 @@
       }),
       {},
     );
-    const [chartElement] = document.getElementsByClassName('chart');
-    const [countryStatElement] = document.getElementsByClassName(
-      'country-stats',
-    );
+
     const [dataSelectButton] = document.getElementsByClassName(
       'dataset-select-button',
     );
@@ -65,8 +67,8 @@
         'click',
         e => {
           const value = parseInt(e.target.getAttribute('data-value'), 10);
-          if (value !== activeDataSet) {
-            activeDataSet = value;
+          if (value !== activeDataSetKey) {
+            activeDataSetKey = value;
             setActiveDataSet(value);
             dataSelectItems.forEach(elem => {
               elem.classList.toggle('active');
@@ -76,18 +78,13 @@
         false,
       );
     });
-    const [controllerElement] = document.getElementsByClassName('controller');
-    chartElement.classList.remove('hidden');
-    controllerElement.classList.remove('hidden');
-    countryStatElement.classList.remove('hidden');
-
     globe.initialize();
     stats.initialize();
     animationPlayer.initialize();
     animationPlayer.addItem(globe);
     animationPlayer.addItem(stats);
 
-    setActiveDataSet(activeDataSet);
+    setActiveDataSet(activeDataSetKey);
   }
 
   function setActiveDataSet(dataIndex) {
@@ -128,15 +125,30 @@
       const locationIsoCodeToNameMap = new Map(
         locationIsoCodes.map(isoCode => [isoCode, locations[isoCode].name]),
       );
-      globe.loadAnimationData(globeData);
+
+      const dataSetName = activeDataSetKey === 0 ? 'Total Cases' : 'Total Deaths';
+      globe.loadAnimationData({
+        dataSetName,
+        dataSetKey: activeDataSetKey,
+        animationDataArrays: globeData,
+      });
       stats.loadAnimationData({
         statsData, 
+        dataSetName,
+        dataSetKey: activeDataSetKey,
         locationIsoCodeToNameMap,
-        dataSetName: activeDataSet === 0 ? 'Cases' : 'Deaths',
       });
-
       document.body.style.backgroundImage = 'none';
       contentElement.classList.remove('blurred');
+      const [chartElement] = document.getElementsByClassName('chart');
+      const [countryStatElement] = document.getElementsByClassName(
+        'country-stats',
+      );
+      const [controllerElement] = document.getElementsByClassName('controller');
+      chartElement.classList.remove('hidden');
+      controllerElement.classList.remove('hidden');
+      countryStatElement.classList.remove('hidden');
+
       animationPlayer.play();
     }, 50);
   }
@@ -150,7 +162,7 @@
     });
 
   console.log(
-    `
+    `%c
  @@@@@@  @@@ @@@      @@@ @@@  @@@  @@@@@@@          
 @@!  @@@ @@! @@!      @@! @@!@!@@@ !@@               
 @!@!@!@! !!@ @!!      !!@ @!@@!!@! !@! @!@!@         
@@ -168,5 +180,6 @@ By Edward Njoroge
 
 Find the source code here: https://github.com/codingedward/ailing-planet 
 `,
+'color: #ff0000; font-size:12px; font-family: monospace;'
   );
 })();

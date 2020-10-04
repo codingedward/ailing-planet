@@ -2,6 +2,10 @@ html, body, .content {
   height: 100%;
 }
 
+* {
+  font-family: 'PT Mono', monospace;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -14,8 +18,12 @@ body {
 
 canvas { display: block; }
 
+.content {
+  transition: 0.1s all;
+}
+
 .content.blurred {
-  filter: blur(2px);
+  filter: blur(4px);
   pointer-events: all;
 }
 
@@ -51,13 +59,14 @@ canvas { display: block; }
 }
 
 .country-stats {
-  right: 0;
   z-index: 11;
   user-select: none;
   pointer-events: none;
   padding: 8px 20px;
   position: absolute;
   min-width: 200px;
+  top: 100px;
+  right: calc(50vw);
 }
 
 .controller {
@@ -212,4 +221,61 @@ canvas { display: block; }
   padding: 0;
   margin: 0;
   font-size: 22px;
+}
+
+.about {
+  right: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 1px solid #fff;
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  position: absolute;
+  margin-top: 15px;
+}
+
+.about span {
+  color: #fff;
+  margin-top: 2px;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.about-card {
+  top: 5%;
+  position: absolute;
+  background-color: rgba(0,0,0,0);
+  z-index: 20;
+  width: 600px;
+  right: calc(50vw - 300px);
+  color: #ddd;
+}
+
+.about-card > h1, h3 {
+  text-transform: uppercase;
+}
+.about-card h1 {
+  text-align: center;
+}
+
+.about-card h3 {
+  margin-top: 30px;
+  margin-bottom: 0;
+}
+
+.about-card > p, ul {
+  margin-top: 6px;
+}
+
+.about-card a {
+  color: #ff0000;
+}
+
+.about-card .about-card-close {
+  fill: #fff;
+  width: 20px;
+  float: right;
+  cursor: pointer;
+  margin-top: 16px;
 }
