@@ -77,7 +77,7 @@
   const mouse = { x: 0, y: 0 };
   const mouseOnDown = { x: 0, y: 0 };
   const rotation = { x: 0, y: 0.4 };
-  const target = { x: 0, y: 0.4 };
+  const target = { x: -0.5, y: 0.2 };
   const targetOnDown = { x: 0, y: 0 };
   let distance = 1400;
   let distanceTarget = 1400;
@@ -139,10 +139,10 @@
     scene.add(atmosphere);
 
     pointsMesh = new THREE.Mesh(
-      (new THREE.BoxGeometry(1.0, 1.0, 2.0))
+      (new THREE.BoxGeometry(1.0, 1.0, 1.5))
         .applyMatrix4(
-          new THREE.Matrix4().makeTranslation(0, 0, -0.5),
-    )
+          new THREE.Matrix4().makeTranslation(0, 0, -0.75),
+      )
     );
 
     pointsMaterial = new THREE.MeshBasicMaterial({
@@ -174,9 +174,11 @@
 
     window.addEventListener('resize', onWindowResize, false);
     document.addEventListener('keydown', onDocumentKeyDown, false);
-    container.addEventListener('mousedown', onMouseDown, false);
     container.addEventListener('wheel', onMouseWheel, false);
+    container.addEventListener('mousedown', onMouseDown, false);
     container.addEventListener('mousemove', onMouseMove, false);
+    container.addEventListener('touchstart', onTouchStart, false);
+    container.addEventListener('touchmove', onTouchMove, false);
     container.addEventListener(
       'mouseover',
       () => {
@@ -416,13 +418,21 @@
     },
     1
   );
-  
+
+  function onTouchStart(event) {
+    container.addEventListener('touchend', onTouchEnd, false);
+    onDownStart(event.changedTouches[0]);
+  }
 
   function onMouseDown(event) {
     container.addEventListener('mouseup', onMouseUp, false);
     container.addEventListener('mouseout', onMouseOut, false);
-    mouseOnDown.x = -event.clientX;
-    mouseOnDown.y = event.clientY;
+    onDownStart(event);
+  }
+
+  function onDownStart({ x, y }) {
+    mouseOnDown.x = -x;
+    mouseOnDown.y = y;
     targetOnDown.x = target.x;
     targetOnDown.y = target.y;
     mouseDownStartTime = performance.now();
@@ -435,6 +445,18 @@
       onCountryHovered(event);
       return;
     }
+    onMove(event);
+  }
+
+  function onTouchMove(event) {
+    if (!isMouseDown) {
+      onCountryHovered(event.changedTouches[0]);
+      return;
+    }
+    onMove(event.changedTouches[0]);
+  }
+
+  function onMove(event) {
     isMouseDragging = true;
     container.style.cursor = 'grabbing';
     const zoomDamp = distance / 800;
@@ -445,11 +467,20 @@
     target.y = Math.max(Math.min(Math.HALF_PI, target.y), -Math.HALF_PI);
   }
 
+  function onTouchEnd() {
+    container.removeEventListener('touchend', onTouchEnd, false);
+    onMoveStop();
+  }
+
   function onMouseUp() {
-    isMouseDown = false;
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
     container.style.cursor = 'auto';
+    onMoveStop();
+  }
+
+  function onMoveStop() {
+    isMouseDown = false;
     const x = targetOnDown.x - target.x;
     const y = targetOnDown.y - target.y;
     if (
@@ -461,13 +492,13 @@
   }
 
   function onMouseOut() {
+    isMouseDown = false;
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
   }
 
   function onMouseWheel(event) {
     event.preventDefault();
-    console.log(event.deltaY);
     if (isOverRenderer) {
       zoom(event.deltaY > 0 ? -120 : 120);
     }
@@ -495,7 +526,7 @@
 
   function zoom(delta) {
     distanceTarget -= delta;
-    distanceTarget = distanceTarget > 1500 ? 1500 : distanceTarget;
+    distanceTarget = distanceTarget > 1600 ? 1600 : distanceTarget;
     distanceTarget = distanceTarget < 600 ? 600 : distanceTarget;
   }
 

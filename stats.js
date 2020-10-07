@@ -140,33 +140,35 @@
         .attr('fill-opacity', 0.6)
         .selectAll('rect');
       return ([, data], transition) => {
-        if (currentKeyFrameIndex > keyframesStartIndex) {
-          return (bar = bar
-            .data(data.slice(0, n), d => d.name)
-            .join(
-              enter =>
-                enter
-                  .append('rect')
-                  .attr('fill', '#ff0000')
-                  .attr('height', y.bandwidth())
-                  .attr('x', x(0))
-                  .attr('y', d => y((prev.get(d) || d).rank))
-                  .attr('width', d => x((prev.get(d) || d).value) - x(0)),
-              update => update,
-              exit =>
-                exit
-                  .transition(transition)
-                  .remove()
-                  .attr('y', d => y((next.get(d) || d).rank))
-                  .attr('width', d => x((next.get(d) || d).value) - x(0)),
-            )
-            .call(bar =>
-              bar
-                .transition(transition)
-                .attr('y', d => y(d.rank))
-                .attr('width', d => x(d.value) - x(0)),
-            ));
+        if (currentKeyFrameIndex < keyframesStartIndex) {
+          return (bar = bar.attr('display', 'none'));
         }
+        return (bar = bar
+          .attr('display', 'block')
+          .data(data.slice(0, n), d => d.name)
+          .join(
+            enter =>
+              enter
+                .append('rect')
+                .attr('fill', '#ff0000')
+                .attr('height', y.bandwidth())
+                .attr('x', x(0))
+                .attr('y', d => y((prev.get(d) || d).rank))
+                .attr('width', d => x((prev.get(d) || d).value) - x(0)),
+            update => update,
+            exit =>
+              exit
+                .transition(transition)
+                .remove()
+                .attr('y', d => y((next.get(d) || d).rank))
+                .attr('width', d => x((next.get(d) || d).value) - x(0)),
+          )
+          .call(bar =>
+            bar
+              .transition(transition)
+              .attr('y', d => y(d.rank))
+              .attr('width', d => x(d.value) - x(0)),
+          ));
       };
     }
 
@@ -176,65 +178,67 @@
         .attr('text-anchor', 'end')
         .selectAll('text');
       return ([, data], transition) => {
-        if (currentKeyFrameIndex > keyframesStartIndex) {
-          return (label = label
-            .data(data.slice(0, n), d => d.name)
-            .join(
-              enter =>
-                enter
-                  .append('text')
-                  .attr(
-                    'transform',
-                    d =>
-                      `translate(${x((prev.get(d) || d).value)},${y(
-                        (prev.get(d) || d).rank,
-                      )})`,
-                  )
-                  .attr('y', y.bandwidth() / 2)
-                  .attr('x', -6)
-                  .attr('dy', '-0.25em')
-                  .text(d => d.name)
-                  .call(text =>
-                    text
-                      .append('tspan')
-                      .attr('fill-opacity', 0.7)
-                      .attr('font-weight', 'normal')
-                      .attr('x', -6)
-                      .attr('dy', '1.15em'),
-                  ),
-              update => update,
-              exit =>
-                exit
-                  .transition(transition)
-                  .remove()
-                  .attr(
-                    'transform',
-                    d =>
-                      `translate(${x((next.get(d) || d).value)},${y(
-                        (next.get(d) || d).rank,
-                      )})`,
-                  )
-                  .call(g =>
-                    g
-                      .select('tspan')
-                      .tween('text', d =>
-                        textTween(d.value, (next.get(d) || d).value),
-                      ),
-                  ),
-            )
-            .call(bar =>
-              bar
+        if (currentKeyFrameIndex < keyframesStartIndex) {
+          return (label = label.attr('display', 'none'));
+        }
+        return (label = label
+          .attr('display', 'block')
+          .data(data.slice(0, n), d => d.name)
+          .join(
+            enter =>
+              enter
+                .append('text')
+                .attr(
+                  'transform',
+                  d =>
+                    `translate(${x((prev.get(d) || d).value)},${y(
+                      (prev.get(d) || d).rank,
+                    )})`,
+                )
+                .attr('y', y.bandwidth() / 2)
+                .attr('x', -6)
+                .attr('dy', '-0.25em')
+                .text(d => d.name)
+                .call(text =>
+                  text
+                    .append('tspan')
+                    .attr('fill-opacity', 0.7)
+                    .attr('font-weight', 'normal')
+                    .attr('x', -6)
+                    .attr('dy', '1.15em'),
+                ),
+            update => update,
+            exit =>
+              exit
                 .transition(transition)
-                .attr('transform', d => `translate(${x(d.value)},${y(d.rank)})`)
+                .remove()
+                .attr(
+                  'transform',
+                  d =>
+                    `translate(${x((next.get(d) || d).value)},${y(
+                      (next.get(d) || d).rank,
+                    )})`,
+                )
                 .call(g =>
                   g
                     .select('tspan')
                     .tween('text', d =>
-                      textTween((prev.get(d) || d).value, d.value),
+                      textTween(d.value, (next.get(d) || d).value),
                     ),
                 ),
-            ));
-        }
+          )
+          .call(bar =>
+            bar
+              .transition(transition)
+              .attr('transform', d => `translate(${x(d.value)},${y(d.rank)})`)
+              .call(g =>
+                g
+                  .select('tspan')
+                  .tween('text', d =>
+                    textTween((prev.get(d) || d).value, d.value),
+                  ),
+              ),
+          ));
       };
     }
 
@@ -248,7 +252,7 @@
             .append('tspan')
             .attr('y', 35)
             .attr('x', 150)
-            .attr('font-size', '22px')
+            .attr('font-size', '1.25rem')
             .attr('class', 'title')
             .text(`COVID-19 ${activeDataSetName.toUpperCase()}`)
         )
@@ -257,7 +261,7 @@
             .append('tspan')
             .attr('y', 60)
             .attr('x', 150)
-            .attr('font-size', '16px')
+            .attr('font-size', '1rem')
             .attr('class', 'date')
             .text(formatDate(keyframes[0][0]))
         )
@@ -300,14 +304,14 @@
                   text
                     .append('tspan')
                     .attr('class', 'countryName')
-                    .attr('font-size', '22px')
+                    .attr('font-size', '1.25rem')
                     .text(d => d.name),
                 )
                 .call(text =>
                   text
                     .append('tspan')
                     .attr('class', 'countryStatValue')
-                    .attr('font-size', '16px')
+                    .attr('font-size', '1rem')
                     .attr('x', 0)
                     .attr('y', 60),
                 ),

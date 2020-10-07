@@ -172,10 +172,6 @@ canvas { display: block; }
   fill: #fff;
 }
 
-.replay-button svg:hover {
-  fill: #ff0000;
-}
-
 .replay-button.enabled svg {
   fill: #ff0000;
 }
@@ -252,6 +248,7 @@ canvas { display: block; }
   width: 600px;
   right: calc(50vw - 300px);
   color: #ddd;
+  line-height: 18px;
 }
 
 .about-card > h1, h3 {
@@ -262,7 +259,7 @@ canvas { display: block; }
 }
 
 .about-card h3 {
-  margin-top: 30px;
+  margin-top: 18px;
   margin-bottom: 0;
 }
 
@@ -274,10 +271,25 @@ canvas { display: block; }
   color: #ff0000;
 }
 
+.about-card a:hover {
+  color: #cc0000;
+}
+
 .about-card .about-card-close {
   fill: #fff;
   width: 20px;
   float: right;
   cursor: pointer;
   margin-top: 16px;
+}
+
+.a-coffee-stuff {
+  display: flex;
+  justify-content: center;
+}
+
+.a-coffee-stuff a {
+  display: inline-block;
+  margin: auto;
+  text-align: center;
 }
