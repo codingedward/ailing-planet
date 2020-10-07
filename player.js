@@ -3,9 +3,8 @@
 
   let items = [];
   let slider;
-  let playbackButton;
+  let playButton;
   let replayButton;
-  let pausePlayAnimation;
   let playbackFraction = 0;
   let previousAnimationTime;
   let isInitialized = false;
@@ -46,18 +45,6 @@
       }
     };
     items.push(slider);
-    pausePlayAnimation = document.getElementById('animation');
-    [playbackButton] = document.getElementsByClassName(
-      'playback-button-wrapper',
-    );
-    playbackButton.addEventListener(
-      'click',
-      e => {
-        e.stopPropagation();
-        toggleIsAnimationPlaying();
-      },
-      false,
-    );
     [replayButton] = document.getElementsByClassName('replay-button');
     replayButton.addEventListener(
       'click',
@@ -67,6 +54,26 @@
       },
       false,
     );
+
+    {
+      playButton = document.querySelector(".playback-button");
+      const useEl = playButton.querySelector("use");
+      const iconEl = playButton.querySelector(useEl.getAttribute("xlink:href"));
+      let nextState = iconEl.getAttribute("data-next-state");
+      const iconPath = iconEl.getAttribute("d");
+      playButtonPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      playButtonPath.setAttribute("data-next-state", nextState);
+      playButtonPath.setAttribute("d", iconPath);
+      const svgEl = playButton.querySelector("svg");
+      svgEl.replaceChild(playButtonPath, useEl);
+      playButton.addEventListener(
+        'click',
+        e => {
+          e.stopPropagation();
+          toggleIsAnimationPlaying();
+        }
+      );
+    }
     const [aboutCard] = document.getElementsByClassName('about-card');
     const [aboutButton] = document.getElementsByClassName('about');
     const [aboutCardClose] = document.getElementsByClassName('about-card-close');
@@ -86,22 +93,19 @@
         contentElement.classList.remove('blurred');
         aboutCard.classList.add('hidden');
       }
-    )
+    );
   }
 
   function toggleIsAnimationPlaying() {
-    const pause =
-      'M11,10 L18,13.74 18,22.28 11,26 M18,13.74 L26,18 26,18 18,22.28';
-    const play = 'M11,10 L17,10 17,26 11,26 M20,10 L26,10 26,26 20,26';
     window.isAnimationPlaying = isAnimationPlaying = !isAnimationPlaying;
-    if (isAnimationPlaying) {
-      pausePlayAnimation.setAttribute('from', pause);
-      pausePlayAnimation.setAttribute('to', play);
-    } else {
-      pausePlayAnimation.setAttribute('from', play);
-      pausePlayAnimation.setAttribute('to', pause);
-    }
-    pausePlayAnimation.beginElement();
+    const nextIconEl = playButton.querySelector(`[data-state="${playButtonPath.getAttribute("data-next-state")}"]`);
+    const iconPath = nextIconEl.getAttribute("d");
+    const nextState = nextIconEl.getAttribute("data-next-state");
+    d3.select(playButtonPath)
+        .attr("data-next-state", nextState)
+        .transition()
+            .duration(100)
+            .attr("d", iconPath);
   }
 
   function toggleReplayEnabled() {

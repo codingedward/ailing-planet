@@ -4,7 +4,6 @@
     return function() { 
       const context = this;
       const args = arguments;
-      console.log('debounced');
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => func.apply(context, args), delay) ;
     } 
@@ -19,7 +18,6 @@
   const DATA_STEP = 3;
   const GLOBE_RADIUS = 200;
   const POINTS_GLOBE_RADIUS = GLOBE_RADIUS + 0.5;
-  const PIXEL_RATIO = window.devicePixelRatio;
   const SKYBOX_TEXTURE = 'img/space';
   const WORLD_TEXTURE = 'img/world.jpg';
   const SHADERS = {
@@ -140,11 +138,12 @@
     atmosphere.updateMatrix();
     scene.add(atmosphere);
 
-    const pointsGeometry = new THREE.BoxGeometry(1.0, 1.0, 2.0);
-    pointsGeometry.applyMatrix4(
-      new THREE.Matrix4().makeTranslation(0, 0, -0.5),
+    pointsMesh = new THREE.Mesh(
+      (new THREE.BoxGeometry(1.0, 1.0, 2.0))
+        .applyMatrix4(
+          new THREE.Matrix4().makeTranslation(0, 0, -0.5),
+    )
     );
-    pointsMesh = new THREE.Mesh(pointsGeometry);
 
     pointsMaterial = new THREE.MeshBasicMaterial({
       vertexColors: THREE.FaceColors,
@@ -170,14 +169,13 @@
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(WIDTH, HEIGHT);
-    // renderer.setPixelRatio(PIXEL_RATIO);
     renderer.domElement.style.position = 'absolute';
     container.appendChild(renderer.domElement);
 
     window.addEventListener('resize', onWindowResize, false);
     document.addEventListener('keydown', onDocumentKeyDown, false);
     container.addEventListener('mousedown', onMouseDown, false);
-    container.addEventListener('mousewheel', onMouseWheel, false);
+    container.addEventListener('wheel', onMouseWheel, false);
     container.addEventListener('mousemove', onMouseMove, false);
     container.addEventListener(
       'mouseover',
@@ -356,7 +354,7 @@
   function setFocusOnCountry({ country, scope, color }) {
     if (
       country &&
-      country.properties.ISO_A3 !== focusedCountry[scope].isoCode
+      country.properties.isoCode !== focusedCountry[scope].isoCode
     ) {
       if (focusedCountry[scope].mesh) {
         scene.remove(focusedCountry[scope].mesh);
@@ -374,8 +372,8 @@
         ...focusedCountry,
         [scope]: {
           mesh,
-          name: country.properties.NAME,
-          isoCode: country.properties.ISO_A3,
+          name: country.properties.name,
+          isoCode: country.properties.isoCode,
         },
       };
       scene.add(mesh);
@@ -469,8 +467,9 @@
 
   function onMouseWheel(event) {
     event.preventDefault();
+    console.log(event.deltaY);
     if (isOverRenderer) {
-      zoom(event.wheelDeltaY * 0.3);
+      zoom(event.deltaY > 0 ? -120 : 120);
     }
     return false;
   }
