@@ -38,8 +38,8 @@
     svg = d3
       .select('.chart')
       .append('svg')
-      .attr('width', width)
-      .attr('height', height);
+      .attr('preserveAspectRatio', 'none')
+      .attr('viewBox', `0 0 ${width} ${height}`);
 
     dateSvg = d3
       .select('.date')

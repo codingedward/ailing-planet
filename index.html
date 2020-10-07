@@ -21,77 +21,79 @@ Find the source code here: https://github.com/codingedward/ailing-planet
 <html>
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0">
     <title>Ailing Planet</title>
-    <link rel="stylesheet" href="/lib/nouislider.min.css" type="text/css">
-    <link rel="stylesheet" href="/index.css" type="text/css">
+    <link rel="stylesheet" href="./lib/nouislider.min.css" type="text/css">
+    <link rel="stylesheet" href="./index.css" type="text/css">
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
   </head>
   <body>
     <div class="about-card frs-hide-scroll-wrapper hidden">
       <div class="frs-hide-scroll">
-        <span class="about-card-close">
-           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-             viewBox="0 0 496.096 496.096">
-              <path d="M259.41,247.998L493.754,13.654c3.123-3.124,3.123-8.188,0-11.312c-3.124-3.123-8.188-3.123-11.312,0L248.098,236.686
-                L13.754,2.342C10.576-0.727,5.512-0.639,2.442,2.539c-2.994,3.1-2.994,8.015,0,11.115l234.344,234.344L2.442,482.342
-                c-3.178,3.07-3.266,8.134-0.196,11.312s8.134,3.266,11.312,0.196c0.067-0.064,0.132-0.13,0.196-0.196L248.098,259.31
-                l234.344,234.344c3.178,3.07,8.242,2.982,11.312-0.196c2.995-3.1,2.995-8.016,0-11.116L259.41,247.998z"/>
-          </svg>       
-        </span>
-        <h1>Ailing Planet</h1>
-        <p>
-          The goal of this project is to provide an interactive timelapse of the COVID-19
-          pandemic as it has occurred. 
-        </p>
-        <p>
-          At every point in the time of the visualisation, the red bars represent the impact
-          of the virus on countries relative to the most impacted country.
-        </p>
-        <h3>Credits</h3>
-        <p>
-          This project would not have been possible without:
-        </p>
-        <ul>
-          <li>
-            <a target="_blank" href="https://ourworldindata.org/">Our World In Data</a>
-            (OWID) which has a <a target="_blank" href="https://ourworldindata.org/coronavirus">project</a>
-            to collect, clean and make public COVID-19 data. All the data used for this visualisation is
-            sourced from OWID.
-          </li>
-          <li>
-            <a target="_blank" href="https://experiments.withgoogle.com/chrome/globe">Experiments with Google</a>
-            for inspiration and providing the base code for the globe used on this project.
-          </li>
-          <li>
-            <a target="_blank" href="https://observablehq.com/@d3/bar-chart-race-explained">ObservableHQ</a>'s
-            resource on creating a data race chart.
-          </li>
-        </ul>
-        <h3>Attributions</h3>
-        <ul>
-          <li>
-            Kawaii Coffee icon by <a target="_blank" href="https://icons8.com/icon/120078/kawaii-coffee">Icons8</a>.
-          </li>
-          <li>
-            Ulukai's Space Skyboxes by <a target="_blank" href="https://opengameart.org/content/ulukais-space-skyboxes">Calinou</a>.
-          </li>
-        </ul>
-        <h3>Source Code</h3>
-        <p>
-        You can find the source code <a target="_blank" href="https://github.com/codingedward/ailing-planet">here</a>.
-        </p>
-        <h3>Developer</h3>
-        <p>
-          Built with &lt;3 by <a target="_blank" href="https://github.com/codingedward">Edward Njoroge</a>
-          (<a target="_blank" href="https://twitter.com/codingedward">@codingedward</a>). If you'd like to appreciate this work, you can:
-        </p>
-        <div class="a-coffee-stuff">
-          <a target="_blank" href="https://www.buymeacoffee.com/codingedward">
-            <img src="https://img.icons8.com/ios/38/ff0000/kawaii-coffee.png"/><br/>
-            Buy me a Coffee
-          </a>
+        <div class="about-card-inner">
+          <span class="about-card-close">
+             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+               viewBox="0 0 496.096 496.096">
+                <path d="M259.41,247.998L493.754,13.654c3.123-3.124,3.123-8.188,0-11.312c-3.124-3.123-8.188-3.123-11.312,0L248.098,236.686
+                  L13.754,2.342C10.576-0.727,5.512-0.639,2.442,2.539c-2.994,3.1-2.994,8.015,0,11.115l234.344,234.344L2.442,482.342
+                  c-3.178,3.07-3.266,8.134-0.196,11.312s8.134,3.266,11.312,0.196c0.067-0.064,0.132-0.13,0.196-0.196L248.098,259.31
+                  l234.344,234.344c3.178,3.07,8.242,2.982,11.312-0.196c2.995-3.1,2.995-8.016,0-11.116L259.41,247.998z"/>
+            </svg>       
+          </span>
+          <h1>Ailing Planet</h1>
+          <p>
+            The goal of this project is to provide an interactive timelapse of the COVID-19
+            pandemic as it has occurred. 
+          </p>
+          <p>
+            At every point in the time of the visualisation, the red bars represent the impact
+            of the virus on countries relative to the most impacted country.
+          </p>
+          <h3>Credits</h3>
+          <p>
+            This project would not have been possible without:
+          </p>
+          <ul>
+            <li>
+              <a target="_blank" href="https://ourworldindata.org/">Our World In Data</a>
+              (OWID) which has a <a target="_blank" href="https://ourworldindata.org/coronavirus">project</a>
+              to collect, clean and make public COVID-19 data. All the data used for this visualisation is
+              sourced from OWID.
+            </li>
+            <li>
+              <a target="_blank" href="https://experiments.withgoogle.com/chrome/globe">Experiments with Google</a>
+              for inspiration and providing the base code for the globe used on this project.
+            </li>
+            <li>
+              <a target="_blank" href="https://observablehq.com/@d3/bar-chart-race-explained">ObservableHQ</a>'s
+              resource on creating a data race chart.
+            </li>
+          </ul>
+          <h3>Attributions</h3>
+          <ul>
+            <li>
+              Kawaii Coffee icon by <a target="_blank" href="https://icons8.com/icon/120078/kawaii-coffee">Icons8</a>.
+            </li>
+            <li>
+              Ulukai's Space Skyboxes by <a target="_blank" href="https://opengameart.org/content/ulukais-space-skyboxes">Calinou</a>.
+            </li>
+          </ul>
+          <h3>Source Code</h3>
+          <p>
+          You can find the source code <a target="_blank" href="https://github.com/codingedward/ailing-planet">here</a>.
+          </p>
+          <h3>Developer</h3>
+          <p>
+            Built with &lt;3 by <a target="_blank" href="https://github.com/codingedward">Edward Njoroge</a>
+            (<a target="_blank" href="https://twitter.com/codingedward">@codingedward</a>). If you'd like to appreciate this work, you can:
+          </p>
+          <div class="a-coffee-stuff">
+            <a target="_blank" href="https://www.buymeacoffee.com/codingedward">
+              <img src="https://img.icons8.com/ios/38/ff0000/kawaii-coffee.png"/><br/>
+              Buy me a Coffee
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -137,11 +139,11 @@ Find the source code here: https://github.com/codingedward/ailing-planet
         </div>
       </div>
     </div>
-    <script src="//unpkg.com/d3@6.2"></script>
-    <script src="//unpkg.com/three@0.120"></script>
-    <script src="//unpkg.com/three-geojson-geometry@1.1"></script>
-    <script src="//unpkg.com/nouislider"></script>
-    <script src="//unpkg.com/frs-hide-scrollbar"></script>
+    <script src="//unpkg.com/d3@6.2.0/dist/d3.min.js"></script>
+    <script src="//unpkg.com/three@0.120.1/build/three.min.js"></script>
+    <script src="//unpkg.com/three-geojson-geometry@1.1.0/dist/three-geojson-geometry.min.js"></script>
+    <script src="//unpkg.com/nouislider@14.6.2/distribute/nouislider.min.js"></script>
+    <script src="//unpkg.com/frs-hide-scrollbar@1.0.0/dist/FRS-hide-scrollbar.umd.js"></script>
     <script src="./lib/three-buffer-geometry-utils.js"></script>
     <script src="./lib/countries.js"></script>
     <script src="./webgl-check.js"></script>
