@@ -285,6 +285,7 @@ canvas { display: block; }
 
 .a-coffee-stuff {
   display: flex;
+  margin-bottom: 50px;
   justify-content: center;
 }
 

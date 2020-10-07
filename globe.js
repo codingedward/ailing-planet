@@ -174,11 +174,9 @@
 
     window.addEventListener('resize', onWindowResize, false);
     document.addEventListener('keydown', onDocumentKeyDown, false);
-    container.addEventListener('wheel', onMouseWheel, false);
     container.addEventListener('mousedown', onMouseDown, false);
+    container.addEventListener('wheel', onMouseWheel, false);
     container.addEventListener('mousemove', onMouseMove, false);
-    container.addEventListener('touchstart', onTouchStart, false);
-    container.addEventListener('touchmove', onTouchMove, false);
     container.addEventListener(
       'mouseover',
       () => {
@@ -419,20 +417,11 @@
     1
   );
 
-  function onTouchStart(event) {
-    container.addEventListener('touchend', onTouchEnd, false);
-    onDownStart(event.changedTouches[0]);
-  }
-
   function onMouseDown(event) {
     container.addEventListener('mouseup', onMouseUp, false);
     container.addEventListener('mouseout', onMouseOut, false);
-    onDownStart(event);
-  }
-
-  function onDownStart({ x, y }) {
-    mouseOnDown.x = -x;
-    mouseOnDown.y = y;
+    mouseOnDown.x = -event.clientX;
+    mouseOnDown.y = event.clientY;
     targetOnDown.x = target.x;
     targetOnDown.y = target.y;
     mouseDownStartTime = performance.now();
@@ -445,18 +434,6 @@
       onCountryHovered(event);
       return;
     }
-    onMove(event);
-  }
-
-  function onTouchMove(event) {
-    if (!isMouseDown) {
-      onCountryHovered(event.changedTouches[0]);
-      return;
-    }
-    onMove(event.changedTouches[0]);
-  }
-
-  function onMove(event) {
     isMouseDragging = true;
     container.style.cursor = 'grabbing';
     const zoomDamp = distance / 800;
@@ -467,20 +444,11 @@
     target.y = Math.max(Math.min(Math.HALF_PI, target.y), -Math.HALF_PI);
   }
 
-  function onTouchEnd() {
-    container.removeEventListener('touchend', onTouchEnd, false);
-    onMoveStop();
-  }
-
   function onMouseUp() {
+    isMouseDown = false;
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
     container.style.cursor = 'auto';
-    onMoveStop();
-  }
-
-  function onMoveStop() {
-    isMouseDown = false;
     const x = targetOnDown.x - target.x;
     const y = targetOnDown.y - target.y;
     if (
@@ -492,7 +460,6 @@
   }
 
   function onMouseOut() {
-    isMouseDown = false;
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
   }
