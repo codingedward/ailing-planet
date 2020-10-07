@@ -1,4 +1,14 @@
 (function() {
+  const debounce = (func, delay) => { 
+    let debounceTimer ;
+    return function() { 
+      const context = this;
+      const args = arguments;
+      console.log('debounced');
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => func.apply(context, args), delay) ;
+    } 
+  }; 
   Math.deg2Rad = deg => (deg * Math.PI) / 180;
   Math.rad2Deg = rad => (rad * 180) / Math.PI;
   Math.HALF_PI = Math.PI / 2;
@@ -75,9 +85,10 @@
   let distanceTarget = 1400;
   let isMouseDown;
   let isAnimating;
+  let pointsMaterial;
   let isMouseDragging;
   let mouseDownStartTime;
-  let currentDataSetKey;
+  let currentDataSetIndex;
   let focusedCountry = {
     clicked: { isoCode: null, name: '', mesh: null },
     hovered: { isoCode: null, name: '', mesh: null },
@@ -134,6 +145,11 @@
       new THREE.Matrix4().makeTranslation(0, 0, -0.5),
     );
     pointsMesh = new THREE.Mesh(pointsGeometry);
+
+    pointsMaterial = new THREE.MeshBasicMaterial({
+      vertexColors: THREE.FaceColors,
+      morphTargets: true,
+    }),
 
     camera = new THREE.PerspectiveCamera(30, WIDTH / HEIGHT, 1, 10000);
     camera.position.z = distance;
@@ -386,19 +402,23 @@
         y: event.clientY,
       }),
     );
-    console.log(country);
     setFocusOnCountry({ country, scope: 'clicked', color: '#ff0000' });
   }
 
-  function onCountryHovered(event) {
-    const country = findCountryForWorldPoint(
-      mapClientToWorldPoint({
-        x: event.clientX,
-        y: event.clientY,
-      }),
-    );
-    setFocusOnCountry({ country, scope: 'hovered', color: '#aa0000' });
-  }
+
+  const onCountryHovered = debounce(
+    event => {
+      const country = findCountryForWorldPoint(
+        mapClientToWorldPoint({
+          x: event.clientX,
+          y: event.clientY,
+        }),
+      );
+      setFocusOnCountry({ country, scope: 'hovered', color: '#aa0000' });
+    },
+    1
+  );
+  
 
   function onMouseDown(event) {
     container.addEventListener('mouseup', onMouseUp, false);
@@ -518,6 +538,7 @@
       pointsMesh.lookAt(earth.position);
       pointsMesh.scale.z = radius * magnitude;
       pointsMesh.updateMatrix();
+      
       pointsMesh.geometry.faces.forEach(face => {
         face.color.setRGB(1, 0, 0);
       });
@@ -525,60 +546,54 @@
     }
   };
 
-  function loadAnimationData({ animationDataArrays, dataSetKey }) {
-    if (dataSetPoints[dataSetKey]) {
-      scene.remove(dataSetPoints[currentDataSetKey]);
-      scene.add(dataSetPoints[dataSetKey])
-      morphs = Object.keys(dataSetPoints[dataSetKey].morphTargetDictionary);
-      currentDataSetKey = dataSetKey;
-    } else {
-      const basePointsGeometry = new THREE.Geometry();
-      animationDataArrays.forEach((dataArray, dataArrayIndex) => {
-        if (dataArrayIndex === 0) {
-          addAnimationFramePoints({
-            dataArray,
-            geometry: basePointsGeometry,
-            shouldUseMagnitude: false,
-          });
-        }
-        const subGeometry = new THREE.Geometry();
+  function loadAnimationData({ globeData, dataSetKey }) {
+    const basePointsGeometry = new THREE.Geometry();
+    globeData.forEach((dataArray, dataArrayIndex) => {
+      if (dataArrayIndex === 0) {
         addAnimationFramePoints({
           dataArray,
-          geometry: subGeometry,
-          shouldUseMagnitude: true,
+          geometry: basePointsGeometry,
+          shouldUseMagnitude: false,
         });
-        basePointsGeometry.morphTargets.push({
-          name: dataArrayIndex.toString(),
-          vertices: subGeometry.vertices,
-        });
-      });
-      dataSetPoints = {
-        ...dataSetPoints,
-        [dataSetKey]: new THREE.Mesh(
-          new THREE.BufferGeometry().fromGeometry(basePointsGeometry),
-          new THREE.MeshBasicMaterial({
-            vertexColors: THREE.FaceColors,
-            morphTargets: true,
-          }),
-        )
-      };
-      morphs = Object.keys(dataSetPoints[dataSetKey].morphTargetDictionary);
-      if (dataSetPoints[currentDataSetKey]) {
-        scene.remove(dataSetPoints[currentDataSetKey]);
       }
-      scene.add(dataSetPoints[dataSetKey]);
-      currentDataSetKey = dataSetKey;
+      const subGeometry = new THREE.Geometry();
+      addAnimationFramePoints({
+        dataArray,
+        geometry: subGeometry,
+        shouldUseMagnitude: true,
+      });
+      basePointsGeometry.morphTargets.push({
+        name: dataArrayIndex.toString(),
+        vertices: subGeometry.vertices,
+      });
+    });
+    dataSetPoints[dataSetKey] = new THREE.Mesh(
+      new THREE.BufferGeometry().fromGeometry(basePointsGeometry),
+      pointsMaterial,
+    );
+  }
+
+  function setActiveDataSet(dataIndex) {
+    if (dataIndex === currentDataSetIndex) {
+      return;
     }
+    scene.remove(dataSetPoints[currentDataSetIndex]);
+    scene.add(dataSetPoints[dataIndex])
+    morphs = Object.keys(dataSetPoints[dataIndex].morphTargetDictionary);
+    currentDataSetIndex = dataIndex;
+
     if (!isAnimating) {
       isAnimating = true;
       animate();
     }
   }
+
   const globe = {
     initialize,
     loadAnimationData,
+    setActiveDataSet,
     setTime: time => {
-      const points = dataSetPoints[currentDataSetKey];
+      const points = dataSetPoints[currentDataSetIndex];
       morphs.forEach((_, morphIndex) => {
         points.morphTargetInfluences[morphs[morphIndex]] = 0;
       });

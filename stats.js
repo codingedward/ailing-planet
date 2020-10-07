@@ -1,33 +1,38 @@
 // This is mostly borrowed from: https://observablehq.com/@d3/bar-chart-race-explained.
 (function() {
   const WORLD_ISO_CODE = 'OWID_WRL';
-  const k = 6;
+  const k = 4;
   const n = 10;
   const width = 300;
   const barSize = 48;
-  const duration = 50;
-  const dateWidth = 300;
-  const dateHeight = 100;
-  const color = '#ff0000';
+  const duration = 250;
   const margin = { top: 16, right: 6, bottom: 6, left: 0 };
   const height = margin.top + barSize * n + margin.bottom;
+  const defaultActiveLocation = { name: 'World', isoCode: WORLD_ISO_CODE };
 
-  let xAxis;
   let svg;
   let dateSvg;
   let countrySvg;
-  let statsData;
-  let dataSetName = '';
-  let locationsNameMap;
-  let keyframes;
+  let dataSetKeyFrames = {};
+  let activeDataSetName = '';
+  let activeKeyframes;
   let keyframesStartIndex;
   let currentKeyFrameIndex;
   let updateBars;
   let updateLabels;
   let updateTitleAndDate;
   let updateCountryStats;
-  const defaultActiveLocation = { name: 'World', isoCode: WORLD_ISO_CODE };
   let activeLocation = defaultActiveLocation;
+
+  const formatNumber = d3.format(',d');
+  const formatDate = d3.utcFormat('%d %B %Y');
+  const formatCountryDateStat = d3.utcFormat('%Y-%m-%d');
+  const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
+  const y = d3
+    .scaleBand()
+    .domain(d3.range(n + 1))
+    .rangeRound([margin.top, margin.top + barSize * (n + 1 + 0.1)])
+    .padding(0.1);
 
   function initialize() {
     svg = d3
@@ -39,34 +44,27 @@
     dateSvg = d3
       .select('.date')
       .append('svg')
-      .attr('width', dateWidth)
-      .attr('height', dateHeight);
+      .attr('width', 300)
+      .attr('height', 100);
 
     countrySvg = d3
       .select('.country-stats')
       .append('svg')
-      .attr('width', 350)
-      .attr('height', 220);
+      .attr('width', 400)
+      .attr('height', 100);
   }
 
-  function processAnimationData() {
-    const formatNumber = d3.format(',d');
-    const formatDate = d3.utcFormat('%d %B %Y');
-    const formatCountryDateStat = d3.utcFormat('%Y-%m-%d');
-
-    const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
-    xAxis = x;
-    const y = d3
-      .scaleBand()
-      .domain(d3.range(n + 1))
-      .rangeRound([margin.top, margin.top + barSize * (n + 1 + 0.1)])
-      .padding(0.1);
-
+  function loadAnimationData({
+    statsData,
+    dataSetKey,
+    dataSetName,
+    locationIsoCodeToNameMap,
+  }) {
     const rank = value => {
-      const data = Array.from(locationsNameMap.keys(), isoCode => ({
+      const data = Array.from(locationIsoCodeToNameMap.keys(), isoCode => ({
         isoCode,
-        name: locationsNameMap.get(isoCode),
         value: value(isoCode),
+        name: locationIsoCodeToNameMap.get(isoCode),
       }));
       data.sort((a, b) => {
         if (a.isoCode === WORLD_ISO_CODE) {
@@ -87,7 +85,7 @@
       return data;
     };
 
-    keyframes = [];
+    let keyframes = [];
     let ka;
     let a;
     let kb;
@@ -101,9 +99,7 @@
         ]);
       }
     }
-
     keyframes.push([new Date(kb), rank(name => b.get(name) || 0)]);
-
     keyframesStartIndex =
       keyframes.findIndex(keyframe =>
         keyframe[1].some(({ value }) => value > 0),
@@ -117,6 +113,27 @@
       nameframes.flatMap(([, data]) => d3.pairs(data, (a, b) => [b, a])),
     );
     const next = new Map(nameframes.flatMap(([, data]) => d3.pairs(data)));
+    dataSetKeyFrames[dataSetKey] = {
+      dataSetName,
+      prev,
+      next,
+      keyframes,
+      keyframesStartIndex,
+    };
+  }
+
+  function setActiveDataSet(dataSetKey) {
+    const {
+      dataSetName,
+      prev,
+      next, 
+      keyframes,
+      keyframesStartIndex 
+    } = dataSetKeyFrames[dataSetKey];
+
+    activeDataSetName = dataSetName;
+    activeKeyframes = keyframes;
+
     function bars(svg) {
       let bar = svg
         .append('g')
@@ -130,7 +147,7 @@
               enter =>
                 enter
                   .append('rect')
-                  .attr('fill', color)
+                  .attr('fill', '#ff0000')
                   .attr('height', y.bandwidth())
                   .attr('x', x(0))
                   .attr('y', d => y((prev.get(d) || d).rank))
@@ -233,7 +250,7 @@
             .attr('x', 150)
             .attr('font-size', '22px')
             .attr('class', 'title')
-            .text(`COVID-19 ${dataSetName.toUpperCase()}`)
+            .text(`COVID-19 ${activeDataSetName.toUpperCase()}`)
         )
         .call(text =>
           text
@@ -249,7 +266,7 @@
           .call(text =>
             text
               .select('.title')
-              .text(`COVID-19 ${dataSetName.toUpperCase()}`)
+              .text(`COVID-19 ${activeDataSetName.toUpperCase()}`)
           )
           .call(text =>
             text
@@ -263,7 +280,6 @@
       let stats = svg
         .append('g')
         .style('font', 'bold 12px var(--sans-serif)')
-        //.attr('text-anchor', 'end')
         .style('font-variant-numeric', 'tabular-nums')
         .selectAll('text');
       return ([date, data], transition) => {
@@ -308,7 +324,7 @@
                       textTween(
                         d.value,
                         (next.get(d) || d).value,
-                        `${dataSetName}: ' '`,
+                        `${activeDataSetName}: ' '`,
                       ),
                     ),
                 ),
@@ -324,7 +340,7 @@
                     textTween(
                       (prev.get(d) || d).value,
                       d.value,
-                      `${dataSetName}: `,
+                      `${activeDataSetName}: `,
                     ),
                   ),
               ),
@@ -348,44 +364,39 @@
     updateCountryStats = countryStats(countrySvg);
   }
 
-  const chart = {
+  function setActiveCountry(country) {
+    if (country) {
+      const { isoCode, name } = country;
+      activeLocation = { isoCode, name };
+    } else {
+      activeLocation = defaultActiveLocation;
+    }
+    if (currentKeyFrameIndex && (!window.isAnimationPlaying || window.isPlaybackFinished)) {
+      const keyframe = activeKeyframes[currentKeyFrameIndex];
+      updateCountryStats(keyframe, countrySvg.transition().duration(0));
+    }
+  }
+
+  const stats = {
     initialize,
-    loadAnimationData: ({
-      statsData: statsDataArg,
-      locationIsoCodeToNameMap,
-      dataSetName: dataSetNameArg,
-    }) => {
-      statsData = statsDataArg;
-      dataSetName = dataSetNameArg;
-      locationsNameMap = locationIsoCodeToNameMap;
-      processAnimationData();
-    },
-    setActiveCountry: country => {
-      if (country) {
-        const { isoCode, name } = country;
-        activeLocation = { isoCode, name };
-      } else {
-        activeLocation = defaultActiveLocation;
-      }
-      if (currentKeyFrameIndex && (!window.isAnimationPlaying || window.isPlaybackFinished)) {
-        const keyframe = keyframes[currentKeyFrameIndex];
-        updateCountryStats(keyframe, countrySvg.transition().duration(0));
-      }
-    },
+    loadAnimationData,
+    setActiveDataSet,
+    setActiveCountry,
     setTime: time => {
-      const last = keyframes.length - 1;
+      const last = activeKeyframes.length - 1;
       const scaledTime = time * last + 1;
-      currentKeyFrameIndex = Math.min(Math.floor(scaledTime), last);
-      if (currentKeyFrameIndex === last) {
+      const newIndex = Math.min(Math.floor(scaledTime), last);
+      if (newIndex === currentKeyFrameIndex) {
         return;
       }
-      const keyframe = keyframes[currentKeyFrameIndex];
+      currentKeyFrameIndex = newIndex;
+      const keyframe = activeKeyframes[currentKeyFrameIndex];
       const createTransition = theSvg =>
         theSvg
           .transition()
           .duration(duration)
           .ease(d3.easeLinear);
-      xAxis.domain([0, keyframe[1][0].value]);
+      x.domain([0, keyframe[1][0].value]);
       const chartTransition = createTransition(svg);
       updateBars(keyframe, chartTransition);
       updateLabels(keyframe, chartTransition);
@@ -395,5 +406,5 @@
     },
   };
 
-  window.countryStats = window.stats = chart;
+  window.stats = stats;
 })();

@@ -8,21 +8,21 @@
     return;
   }
 
-  let networkData;
-  let cleanedData;
-  let sortedDates;
-  let countryIsoCodes;
-  let locationIsoCodes;
-  let activeDataSetKey = 0;
+  let activeDataIndex = 1;
   const WORLD_ISO_CODE = 'OWID_WRL';
   const [contentElement] = document.getElementsByClassName('content');
+  const [chartElement] = document.getElementsByClassName('chart');
+  const [countryStatElement] = document.getElementsByClassName(
+    'country-stats',
+  );
+  const [controllerElement] = document.getElementsByClassName('controller');
 
-  function initialize() {
+  function computeDataSets(networkData) {
     const { data, locations } = networkData;
-    locationIsoCodes = Object.keys(locations);
-    countryIsoCodes = locationIsoCodes.filter(key => key !== WORLD_ISO_CODE);
-    sortedDates = Object.keys(data).sort((a, b) => new Date(a) - new Date(b));
-    cleanedData = sortedDates.reduce(
+    const locationIsoCodes = Object.keys(locations);
+    const countryIsoCodes = locationIsoCodes.filter(key => key !== WORLD_ISO_CODE);
+    const sortedDates = Object.keys(data).sort((a, b) => new Date(a) - new Date(b));
+    const cleanedData = sortedDates.reduce(
       (datesData, date) => ({
         ...datesData,
         [date]: locationIsoCodes.reduce(
@@ -35,7 +35,80 @@
       }),
       {},
     );
+    const locationIsoCodeToNameMap = new Map(
+      locationIsoCodes.map(isoCode => [isoCode, locations[isoCode].name]),
+    );
+    [0, 1].map((dataIndex) => {
+      const { locations } = networkData;
+      const statsData = sortedDates.reduce(
+        (datesData, date) => [
+          ...datesData,
+          [
+            new Date(`${date}T00:00:00Z`),
+            new Map(
+              locationIsoCodes.map(isoCode => [
+                isoCode,
+                cleanedData[date][isoCode][dataIndex],
+              ]),
+            ),
+          ],
+        ],
+        [],
+      );
+      const globeData = sortedDates.map(date => {
+        const max = countryIsoCodes.reduce(
+          (maxValue, isoCode) =>
+            Math.max(maxValue, cleanedData[date][isoCode][dataIndex]),
+          1,
+        );
+        return countryIsoCodes
+          .map(isoCode => [
+            locations[isoCode].lat,
+            locations[isoCode].lng,
+            cleanedData[date][isoCode][dataIndex] / max,
+          ])
+          .reduce((flatArr, arr) => [...flatArr, ...arr], []);
+      });
+      return {
+        dataSetName: dataIndex === 0 ? 'Total Cases' : 'Total Deaths',
+        statsData,
+        globeData,
+      }
+    })
+      .forEach((dataSet, dataIndex) => {
+        const { dataSetName, globeData, statsData } = dataSet;
+        globe.loadAnimationData({
+          globeData,
+          dataSetName,
+          dataSetKey: dataIndex,
+        });
+        stats.loadAnimationData({
+          statsData, 
+          dataSetName,
+          dataSetKey: dataIndex,
+          locationIsoCodeToNameMap,
+        });
+      })
+  }
 
+  function setActiveDataSet(dataIndex) {
+    animationPlayer.pause();
+    contentElement.classList.add('blurred');
+    setTimeout(() => {
+      activeDataIndex = dataIndex;
+      globe.setActiveDataSet(dataIndex);
+      stats.setActiveDataSet(dataIndex);
+      document.body.style.backgroundImage = 'none';
+      contentElement.classList.remove('blurred');
+      chartElement.classList.remove('hidden');
+      controllerElement.classList.remove('hidden');
+      countryStatElement.classList.remove('hidden');
+
+      animationPlayer.play();
+    }, 50);
+  }
+
+  function initialize() {
     const [dataSelectButton] = document.getElementsByClassName(
       'dataset-select-button',
     );
@@ -67,8 +140,8 @@
         'click',
         e => {
           const value = parseInt(e.target.getAttribute('data-value'), 10);
-          if (value !== activeDataSetKey) {
-            activeDataSetKey = value;
+          if (value !== activeDataIndex) {
+            activeDataIndex = value;
             setActiveDataSet(value);
             dataSelectItems.forEach(elem => {
               elem.classList.toggle('active');
@@ -83,82 +156,15 @@
     animationPlayer.initialize();
     animationPlayer.addItem(globe);
     animationPlayer.addItem(stats);
-
-    setActiveDataSet(activeDataSetKey);
-  }
-
-  function setActiveDataSet(dataIndex) {
-    animationPlayer.pause();
-    contentElement.classList.add('blurred');
-
-    setTimeout(() => {
-      const { locations } = networkData;
-      const statsData = sortedDates.reduce(
-        (datesData, date) => [
-          ...datesData,
-          [
-            new Date(`${date} 00:00z`),
-            new Map(
-              locationIsoCodes.map(isoCode => [
-                isoCode,
-                cleanedData[date][isoCode][dataIndex],
-              ]),
-            ),
-          ],
-        ],
-        [],
-      );
-      const globeData = sortedDates.map(date => {
-        const max = countryIsoCodes.reduce(
-          (maxValue, isoCode) =>
-            Math.max(maxValue, cleanedData[date][isoCode][dataIndex]),
-          1,
-        );
-        return countryIsoCodes
-          .map(isoCode => [
-            locations[isoCode].lat,
-            locations[isoCode].lng,
-            cleanedData[date][isoCode][dataIndex] / max,
-          ])
-          .reduce((flatArr, arr) => [...flatArr, ...arr], []);
-      });
-      const locationIsoCodeToNameMap = new Map(
-        locationIsoCodes.map(isoCode => [isoCode, locations[isoCode].name]),
-      );
-
-      const dataSetName = activeDataSetKey === 0 ? 'Total Cases' : 'Total Deaths';
-      globe.loadAnimationData({
-        dataSetName,
-        dataSetKey: activeDataSetKey,
-        animationDataArrays: globeData,
-      });
-      stats.loadAnimationData({
-        statsData, 
-        dataSetName,
-        dataSetKey: activeDataSetKey,
-        locationIsoCodeToNameMap,
-      });
-      document.body.style.backgroundImage = 'none';
-      contentElement.classList.remove('blurred');
-      const [chartElement] = document.getElementsByClassName('chart');
-      const [countryStatElement] = document.getElementsByClassName(
-        'country-stats',
-      );
-      const [controllerElement] = document.getElementsByClassName('controller');
-      chartElement.classList.remove('hidden');
-      controllerElement.classList.remove('hidden');
-      countryStatElement.classList.remove('hidden');
-
-      animationPlayer.play();
-    }, 50);
   }
 
 
   fetch('./data/data.json', { method: 'GET' })
     .then(res => res.json())
     .then(res => {
-      networkData = res;
       initialize();
+      computeDataSets(res);
+      setActiveDataSet(0);
     });
 
   console.log(
@@ -180,6 +186,6 @@ By Edward Njoroge
 
 Find the source code here: https://github.com/codingedward/ailing-planet 
 `,
-'color: #ff0000; font-size:12px; font-family: monospace;'
+'color: #ff0000; font-size:12px;'
   );
 })();

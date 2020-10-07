@@ -68,7 +68,7 @@
   };
 
   window.isWebGLAvailable = function() {
-    if (!WEBGL.isWebGL2Available()) {
+    if (!WEBGL.isWebGLAvailable()) {
       const element = document.getElementsByClassName('error-message')[0];
       element.classList.remove('hidden');
       element.appendChild(WEBGL.getErrorMessage(2));
