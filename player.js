@@ -158,7 +158,7 @@
         toggleIsAnimationPlaying();
       }
       items.forEach(item => {
-        item.setTime(playbackFraction);
+        item.setTime(playbackFraction, true);
       });
     },
   };

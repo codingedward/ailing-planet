@@ -8,11 +8,15 @@
       debounceTimer = setTimeout(() => func.apply(context, args), delay) ;
     } 
   }; 
+
   Math.deg2Rad = deg => (deg * Math.PI) / 180;
   Math.rad2Deg = rad => (rad * 180) / Math.PI;
   Math.HALF_PI = Math.PI / 2;
   Math.QUARTER_PI = Math.PI / 4;
   Math.TAU = Math.PI * 2;
+
+  const WIDTH = window.innerWidth;
+  const HEIGHT = window.innerHeight;
   const EPSILON = 1e-6;
   const EPSILON2 = 1e-12;
   const DATA_STEP = 3;
@@ -69,9 +73,8 @@
   let camera;
   let renderer;
   let raycaster;
-  let isOverRenderer;
   let dataSetPoints = {};
-  let pointsMesh;
+  let point;
   let morphs;
   const zoomSpeed = 0;
   const mouse = { x: 0, y: 0 };
@@ -80,23 +83,21 @@
   const target = { x: -0.5, y: 0.2 };
   const targetOnDown = { x: 0, y: 0 };
   let distance = 1400;
-  let distanceTarget = 1400;
-  let isMouseDown;
+  let distanceTarget = WIDTH > 1024 ? 1000 : 1400;
+  let isPanning;
   let isAnimating;
   let pointsMaterial;
-  let isMouseDragging;
-  let mouseDownStartTime;
   let currentDataSetIndex;
   let focusedCountry = {
     clicked: { isoCode: null, name: '', mesh: null },
     hovered: { isoCode: null, name: '', mesh: null },
   };
   const container = document.getElementsByClassName('container')[0];
+  const containerEvents = new Hammer(container);
+  containerEvents.get('pinch').set({ enable: true });
+  containerEvents.get('pan').set({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
 
   function initialize() {
-    const WIDTH = window.innerWidth;
-    const HEIGHT = window.innerHeight;
-
     raycaster = new THREE.Raycaster();
     window.scene = scene = new THREE.Scene();
     scene.background = new THREE.CubeTextureLoader().load(
@@ -138,17 +139,16 @@
     atmosphere.updateMatrix();
     scene.add(atmosphere);
 
-    pointsMesh = new THREE.Mesh(
-      (new THREE.BoxGeometry(1.0, 1.0, 1.5))
+    point = new THREE.Mesh(
+      (new THREE.BoxBufferGeometry(1.0, 1.0, 1.5))
         .applyMatrix4(
           new THREE.Matrix4().makeTranslation(0, 0, -0.75),
       )
     );
-
     pointsMaterial = new THREE.MeshBasicMaterial({
-      vertexColors: THREE.FaceColors,
-      morphTargets: true,
-    }),
+      color: '#ff0000', 
+      morphTargets: true 
+    });
 
     camera = new THREE.PerspectiveCamera(30, WIDTH / HEIGHT, 1, 10000);
     camera.position.z = distance;
@@ -174,23 +174,12 @@
 
     window.addEventListener('resize', onWindowResize, false);
     document.addEventListener('keydown', onDocumentKeyDown, false);
-    container.addEventListener('mousedown', onMouseDown, false);
-    container.addEventListener('wheel', onMouseWheel, false);
+    containerEvents.on('panstart', onPanStart);
+    containerEvents.on('panmove', onPanMove);
+    containerEvents.on('tap', onTap);
+    containerEvents.on('pinch pinchmove', onZoom);
+    container.addEventListener('wheel', onZoom, false);
     container.addEventListener('mousemove', onMouseMove, false);
-    container.addEventListener(
-      'mouseover',
-      () => {
-        isOverRenderer = true;
-      },
-      false,
-    );
-    container.addEventListener(
-      'mouseout',
-      () => {
-        isOverRenderer = false;
-      },
-      false,
-    );
   }
 
   // Borrowed from: https://github.com/d3/d3-geo/blob/master/src/polygonContains.js
@@ -393,83 +382,64 @@
     }
   }
 
-  function onCountryClicked(event) {
+  function onCountryClicked(point) {
     const country = findCountryForWorldPoint(
-      mapClientToWorldPoint({
-        x: event.clientX,
-        y: event.clientY,
-      }),
+      mapClientToWorldPoint(point),
     );
     setFocusOnCountry({ country, scope: 'clicked', color: '#ff0000' });
   }
 
 
   const onCountryHovered = debounce(
-    event => {
+    point => {
       const country = findCountryForWorldPoint(
-        mapClientToWorldPoint({
-          x: event.clientX,
-          y: event.clientY,
-        }),
+        mapClientToWorldPoint(point),
       );
       setFocusOnCountry({ country, scope: 'hovered', color: '#aa0000' });
     },
     1
   );
 
-  function onMouseDown(event) {
-    container.addEventListener('mouseup', onMouseUp, false);
-    container.addEventListener('mouseout', onMouseOut, false);
-    mouseOnDown.x = -event.clientX;
-    mouseOnDown.y = event.clientY;
+  function onPanStart(event) {
+    containerEvents.on('panend', onPanEnd);
+    mouseOnDown.x = -event.center.x;
+    mouseOnDown.y = event.center.y;
     targetOnDown.x = target.x;
     targetOnDown.y = target.y;
-    mouseDownStartTime = performance.now();
-    isMouseDragging = false;
-    isMouseDown = true;
+    isPanning = true;
   }
 
-  function onMouseMove(event) {
-    if (!isMouseDown) {
-      onCountryHovered(event);
-      return;
-    }
-    isMouseDragging = true;
+  function onPanMove(event) {
     container.style.cursor = 'grabbing';
     const zoomDamp = distance / 800;
-    mouse.x = -event.clientX;
-    mouse.y = event.clientY;
+    mouse.x = -event.center.x;
+    mouse.y = event.center.y;
     target.x = targetOnDown.x + (mouse.x - mouseOnDown.x) * 0.005 * zoomDamp;
     target.y = targetOnDown.y + (mouse.y - mouseOnDown.y) * 0.005 * zoomDamp;
     target.y = Math.max(Math.min(Math.HALF_PI, target.y), -Math.HALF_PI);
   }
 
-  function onMouseUp() {
-    isMouseDown = false;
-    container.removeEventListener('mouseup', onMouseUp, false);
-    container.removeEventListener('mouseout', onMouseOut, false);
+  function onMouseMove(event) {
+    if (!isPanning) {
+      onCountryHovered({
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+  }
+
+  function onPanEnd() {
+    isPanning = false;
+    containerEvents.off('panend', onPanEnd);
     container.style.cursor = 'auto';
-    const x = targetOnDown.x - target.x;
-    const y = targetOnDown.y - target.y;
-    if (
-      (!isMouseDragging && performance.now() - mouseDownStartTime <= 500) ||
-      Math.sqrt(x * x + y * y) <= 0.05
-    ) {
-      onCountryClicked(event);
-    }
   }
 
-  function onMouseOut() {
-    container.removeEventListener('mouseup', onMouseUp, false);
-    container.removeEventListener('mouseout', onMouseOut, false);
+  function onTap(event) {
+    onCountryClicked(event.center);
   }
 
-  function onMouseWheel(event) {
-    event.preventDefault();
-    if (isOverRenderer) {
-      zoom(event.deltaY > 0 ? -120 : 120);
-    }
-    return false;
+  function onZoom(event) {
+    zoom(event.deltaY > 0 ? -120 : 120);
   }
 
   function onDocumentKeyDown(event) {
@@ -517,11 +487,8 @@
     render();
   }
 
-  function addAnimationFramePoints ({
-    dataArray,
-    geometry,
-    shouldUseMagnitude,
-  }) {
+  function createGeometryFromData ({ dataArray, shouldUseMagnitude }) {
+    const geometries = [];
     for (let i = 0; i < dataArray.length; i += DATA_STEP) {
       const lat = dataArray[i];
       const lng = dataArray[i + 1];
@@ -529,45 +496,32 @@
       const phi = Math.deg2Rad(90 - lat);
       const theta = Math.deg2Rad(180 - lng);
       const radius = magnitude > 0 ? POINTS_GLOBE_RADIUS : 1;
-      pointsMesh.position.x = radius * Math.sin(phi) * Math.cos(theta);
-      pointsMesh.position.y = radius * Math.cos(phi);
-      pointsMesh.position.z = radius * Math.sin(phi) * Math.sin(theta);
-      pointsMesh.lookAt(earth.position);
-      pointsMesh.scale.z = radius * magnitude;
-      pointsMesh.updateMatrix();
-      
-      pointsMesh.geometry.faces.forEach(face => {
-        face.color.setRGB(1, 0, 0);
-      });
-      geometry.merge(pointsMesh.geometry, pointsMesh.matrix);
+      point.position.x = radius * Math.sin(phi) * Math.cos(theta);
+      point.position.y = radius * Math.cos(phi);
+      point.position.z = radius * Math.sin(phi) * Math.sin(theta);
+      point.lookAt(earth.position);
+      point.scale.z = radius * magnitude;
+      point.updateMatrix();
+      geometries.push(point.geometry.clone().applyMatrix4(point.matrix));
     }
+    return THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
   };
 
   function loadAnimationData({ globeData, dataSetKey }) {
-    const basePointsGeometry = new THREE.Geometry();
-    globeData.forEach((dataArray, dataArrayIndex) => {
-      if (dataArrayIndex === 0) {
-        addAnimationFramePoints({
-          dataArray,
-          geometry: basePointsGeometry,
-          shouldUseMagnitude: false,
-        });
-      }
-      const subGeometry = new THREE.Geometry();
-      addAnimationFramePoints({
-        dataArray,
-        geometry: subGeometry,
-        shouldUseMagnitude: true,
-      });
-      basePointsGeometry.morphTargets.push({
-        name: dataArrayIndex.toString(),
-        vertices: subGeometry.vertices,
-      });
+    const geometry = createGeometryFromData({
+      dataArray: globeData[0],
+      shouldUseMagnitude: false,
     });
-    dataSetPoints[dataSetKey] = new THREE.Mesh(
-      new THREE.BufferGeometry().fromGeometry(basePointsGeometry),
-      pointsMaterial,
-    );
+    geometry.morphAttributes.position = [];
+    globeData.forEach((dataArray, index) => {
+      geometry.morphAttributes.position[index] =
+        createGeometryFromData({
+          dataArray,
+          shouldUseMagnitude: true,
+        }).attributes.position;
+    });
+    delete globeData;
+    dataSetPoints[dataSetKey] = new THREE.Mesh(geometry, pointsMaterial);
   }
 
   function setActiveDataSet(dataIndex) {
@@ -608,3 +562,4 @@
 
   window.globe = globe;
 })();
+

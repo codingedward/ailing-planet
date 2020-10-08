@@ -386,11 +386,11 @@
     loadAnimationData,
     setActiveDataSet,
     setActiveCountry,
-    setTime: time => {
+    setTime: (time, shouldRender) => {
       const last = activeKeyframes.length - 1;
       const scaledTime = time * last + 1;
       const newIndex = Math.min(Math.floor(scaledTime), last);
-      if (newIndex === currentKeyFrameIndex) {
+      if (!shouldRender && newIndex === currentKeyFrameIndex) {
         return;
       }
       currentKeyFrameIndex = newIndex;

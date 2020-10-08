@@ -99,7 +99,6 @@ canvas { display: block; }
   padding-left: 8px;
   position: absolute;
   min-width: 180px;
-  left: 0;
   bottom: 120px;
   transform: scale(0.8);
 }
@@ -318,6 +317,7 @@ canvas { display: block; }
 
 .about-card-inner {
   position: relative;
+  margin-top: 30px;
   padding: 20px;
   max-width: 600px;
   margin-left: auto;

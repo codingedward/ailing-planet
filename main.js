@@ -2,7 +2,7 @@
 
   if (!window.isWebGLAvailable()) {
     console.log(
-      "%c Here's a nickel kid, go buy yourself a decent browser :)", 
+      "%c Here's a nickel kid, go buy yourself a decent browser", 
       'color: #00ff00; font-size: 20px; font-weight: bold; font-family: monospace'
     );
     return;
@@ -18,11 +18,11 @@
   const [controllerElement] = document.getElementsByClassName('controller');
 
   function computeDataSets(networkData) {
-    const { data, locations } = networkData;
+    let { data, locations } = networkData;
     const locationIsoCodes = Object.keys(locations);
     const countryIsoCodes = locationIsoCodes.filter(key => key !== WORLD_ISO_CODE);
-    const sortedDates = Object.keys(data).sort((a, b) => new Date(a) - new Date(b));
-    const cleanedData = sortedDates.reduce(
+    let sortedDates = Object.keys(data).sort((a, b) => new Date(a) - new Date(b));
+    let cleanedData = sortedDates.reduce(
       (datesData, date) => ({
         ...datesData,
         [date]: locationIsoCodes.reduce(
@@ -88,7 +88,10 @@
           dataSetKey: dataIndex,
           locationIsoCodeToNameMap,
         });
-      })
+      });
+    delete data;
+    delete cleanedData;
+    delete sortedDates;
   }
 
   function setActiveDataSet(dataIndex) {
@@ -165,6 +168,7 @@
       initialize();
       computeDataSets(res);
       setActiveDataSet(0);
+      res = null;
     });
 
   console.log(
