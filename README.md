@@ -30,4 +30,5 @@ You can find the source code [here](https://github.com/codingedward/ailing-plane
 Built with <3 by [Edward Njoroge](https://github.com/codingedward) ([@codingedward](https://twitter.com/codingedward)). 
 
 If you'd like to appreciate this work, you can:
+
 [![](https://img.icons8.com/ios/38/ff0000/kawaii-coffee.png) Buy me a Coffee](https://www.buymeacoffee.com/codingedward)
