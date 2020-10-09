@@ -168,7 +168,6 @@ window.addEventListener('load', () => {
         computeDataSets(res);
         const interval = setInterval(() => {
           if (globe.isReady()) {
-            console.log("I'm ready....");
             clearInterval(interval);
             setActiveDataSet(0);
           }
