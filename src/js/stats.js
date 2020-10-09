@@ -150,7 +150,6 @@ function setActiveDataSet(dataSetKey) {
       .append('g')
       .attr('fill-opacity', 0.6)
       .selectAll('rect');
-    const onHover = createDebouncedSetFocusOnCountry('hovered');
     const onClick = createDebouncedSetFocusOnCountry('clicked');
     return ([, data], transition) => {
       if (currentKeyFrameIndex < keyframesStartIndex) {
@@ -164,7 +163,6 @@ function setActiveDataSet(dataSetKey) {
               .append('rect')
               .attr('pointer-events', 'all')
               .attr('cursor', 'pointer')
-              .on('mousemove', onHover)
               .on('click', onClick)
               .attr('fill', '#ff0000')
               .attr('height', y.bandwidth())

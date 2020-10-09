@@ -154,22 +154,29 @@ function initialize() {
   player.addItem(stats);
 }
 
-if (!isWebGLAvailable()) {
-  console.log(
-    "%c Here's a nickel kid, go buy yourself a decent browser",
-    'color: #00ff00; font-size: 20px; font-weight: bold; font-family: monospace',
-  );
-} else {
-  fetch('./data.json')
-    .then((res) => res.json())
-    .then((res) => {
-      initialize();
-      computeDataSets(res);
-      setActiveDataSet(0);
-    });
+window.addEventListener('load', () => {
+  if (!isWebGLAvailable()) {
+    console.log(
+      "%c Here's a nickel kid, go buy yourself a decent browser",
+      'color: #00ff00; font-size: 20px; font-weight: bold; font-family: monospace',
+    );
+  } else {
+    window.fetch('./data.json')
+      .then((res) => res.json())
+      .then((res) => {
+        initialize();
+        computeDataSets(res);
+        const interval = setInterval(() => {
+          if (globe.isReady()) {
+            console.log("I'm ready....");
+            clearInterval(interval);
+            setActiveDataSet(0);
+          }
+        }, 500);
+      });
 
-  console.log(
-    `%c
+    console.log(
+      `%c
    @@@@@@  @@@ @@@      @@@ @@@  @@@  @@@@@@@          
   @@!  @@@ @@! @@!      @@! @@!@!@@@ !@@               
   @!@!@!@! !!@ @!!      !!@ @!@@!!@! !@! @!@!@         
@@ -187,6 +194,7 @@ if (!isWebGLAvailable()) {
 
   Find the source code here: https://github.com/codingedward/ailing-planet 
   `,
-    'color: #ff0000; font-size:12px;',
-  );
-}
+      'color: #ff0000; font-size:12px;',
+    );
+  }
+});

@@ -15,6 +15,10 @@ Math.HALF_PI = Math.PI / 2;
 Math.QUARTER_PI = Math.PI / 4;
 Math.TAU = Math.PI * 2;
 
+let isInitialized = false;
+let isWorldTextureReady = false;
+let isSkyboxTextureReady = false;
+
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
 const EPSILON = 1e-6;
@@ -22,12 +26,16 @@ const EPSILON2 = 1e-12;
 const DATA_STEP = 3;
 const GLOBE_RADIUS = 200;
 const POINTS_GLOBE_RADIUS = GLOBE_RADIUS + 0.5;
-const SKYBOX_TEXTURE = 'images/space';
-const WORLD_TEXTURE = 'images/world.jpg';
+const SKYBOX_TEXTURE = `images/space`;
+const WORLD_TEXTURE = `images/world.jpg`;
 const SHADERS = {
   earth: {
     uniforms: {
-      worldTexture: { value: new THREE.TextureLoader().load(WORLD_TEXTURE) },
+      worldTexture: {
+        value: new THREE.TextureLoader().load(WORLD_TEXTURE, () => {
+          isWorldTextureReady = true;
+        }),
+      },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -108,8 +116,10 @@ function initialize() {
     ['lf', 'rt', 'up', 'dn', 'ft', 'bk'].map(
       (side) => `${SKYBOX_TEXTURE}_${side}.png`,
     ),
+    () => {
+      isSkyboxTextureReady = true;
+    },
   );
-
   const countryPolygons = new THREE.LineSegments(
     BufferGeometryUtils.mergeBufferGeometries(
       countries.features.map(
@@ -160,7 +170,6 @@ function initialize() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(WIDTH, HEIGHT);
   renderer.domElement.style.position = 'absolute';
-  container.appendChild(renderer.domElement);
 
   window.addEventListener('resize', onWindowResize, false);
   document.addEventListener('keydown', onDocumentKeyDown, false);
@@ -170,6 +179,8 @@ function initialize() {
   containerEvents.on('pinch pinchmove', onZoom);
   container.addEventListener('wheel', onZoom, false);
   container.addEventListener('mousemove', onMouseMove, false);
+
+  isInitialized = true;
 }
 
 function findCountryByIsoCode(isoCode) {
@@ -542,6 +553,7 @@ function setActiveDataSet(dataIndex) {
   currentDataSetIndex = dataIndex;
 
   if (!isAnimating) {
+    container.appendChild(renderer.domElement);
     isAnimating = true;
     animate();
   }
@@ -552,6 +564,7 @@ export default {
   loadAnimationData,
   setActiveDataSet,
   setFocusOnCountryByIsoCode,
+  isReady: () => isInitialized && isWorldTextureReady && isSkyboxTextureReady,
   setTime: (time) => {
     const points = dataSetPoints[currentDataSetIndex];
     morphs.forEach((_, morphIndex) => {
