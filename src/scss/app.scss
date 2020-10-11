@@ -27,7 +27,8 @@ canvas {
   display: block;
 }
 .content.blurred {
-  filter: blur(4px);
+  /* filter: blur(4px); -- very slow on Mozilla */
+  opacity: 0.1;
   pointer-events: all;
 }
 .hidden {

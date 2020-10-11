@@ -52,64 +52,70 @@ function toggleIsSearchShown() {
   }
 }
 
+function searchListAttachEvents() {
+  Array.from(document.getElementsByClassName('search-suggestions-list-item'))
+    .forEach(
+      (el) => {
+        el.addEventListener(
+          'click',
+          (elEvt) => {
+            const isoCode = elEvt.target.getAttribute('data-value');
+            if (isoCode) {
+              toggleIsSearchShown();
+              setFocusOnCountry(isoCode);
+            }
+          },
+        );
+      },
+    );
+}
+
 function initialize() {
   searchList.innerHTML = countryNames.map(createCountryListItem).join('');
+  searchListAttachEvents();
   searchInput.addEventListener(
-    'input',
+    'keyup',
     (e) => {
       const value = e.target.value.trim().toLowerCase();
       if (!value) {
+        searchList.innerHTML = countryNames.map(createCountryListItem).join('');
         currentSearchFirstCountryIsoCode = null;
-        return;
+      } else {
+        const matches = countryNames
+          .filter(
+            (name) => name.toLowerCase().indexOf(value) !== -1,
+          )
+          .sort((a, b) => {
+            /*
+             * Move names starting with term to the top otherwise sort
+             * alphabetically...
+             */
+            const aStartsWithTerm = a.toLowerCase().startsWith(value);
+            const bStartsWithTerm = b.toLowerCase().startsWith(value);
+            if (aStartsWithTerm && !bStartsWithTerm) {
+              return -1;
+            }
+            if (!aStartsWithTerm && bStartsWithTerm) {
+              return 1;
+            }
+            const aHasWordStartingWithTerm = a.split(' ').some((word) => word.toLowerCase().startsWith(value));
+            const bHasWordStartingWithTerm = b.split(' ').some((word) => word.toLowerCase().startsWith(value));
+            if (aHasWordStartingWithTerm && !bHasWordStartingWithTerm) {
+              return -1;
+            }
+            if (!aHasWordStartingWithTerm && bHasWordStartingWithTerm) {
+              return 1;
+            }
+            return a > b;
+          });
+        currentSearchFirstCountryIsoCode = matches.length > 0
+          ? countryNameToIsoCodeMap.get(matches[0])
+          : null;
+        searchList.innerHTML = matches
+          .map(createCountryListItem)
+          .join('');
       }
-      const matches = countryNames
-        .filter(
-          (name) => name.toLowerCase().indexOf(value) !== -1,
-        )
-        .sort((a, b) => {
-          /*
-           * Move names starting with term to the top otherwise sort
-           * alphabetically...
-           */
-          const aStartsWithTerm = a.toLowerCase().startsWith(value);
-          const bStartsWithTerm = b.toLowerCase().startsWith(value);
-          if (aStartsWithTerm && !bStartsWithTerm) {
-            return -1;
-          }
-          if (!aStartsWithTerm && bStartsWithTerm) {
-            return 1;
-          }
-          const aHasWordStartingWithTerm = a.split(' ').some((word) => word.toLowerCase().startsWith(value));
-          const bHasWordStartingWithTerm = b.split(' ').some((word) => word.toLowerCase().startsWith(value));
-          if (aHasWordStartingWithTerm && !bHasWordStartingWithTerm) {
-            return -1;
-          }
-          if (!aHasWordStartingWithTerm && bHasWordStartingWithTerm) {
-            return 1;
-          }
-          return a > b;
-        });
-      currentSearchFirstCountryIsoCode = matches.length > 0
-        ? countryNameToIsoCodeMap.get(matches[0])
-        : null;
-      searchList.innerHTML = matches
-        .map(createCountryListItem)
-        .join('');
-      Array.from(document.getElementsByClassName('search-suggestions-list-item'))
-        .forEach(
-          (el) => {
-            el.addEventListener(
-              'click',
-              (elEvt) => {
-                const isoCode = elEvt.target.getAttribute('data-value');
-                if (isoCode) {
-                  toggleIsSearchShown();
-                  setFocusOnCountry(isoCode);
-                }
-              },
-            );
-          },
-        );
+      searchListAttachEvents();
     },
   );
   searchButton.addEventListener(
