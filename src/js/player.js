@@ -1,13 +1,15 @@
 import * as d3 from 'd3';
 import noUiSlider from 'nouislider';
 
-const PLAYBACK_TIME = 1000 * 60 * 5;
+const PLAYBACK_TIME = 1000 * 60 * 3;
+export const PLAYBACK_SPEEDS = [1, 2, 3, 4, 5];
 
 let items = [];
 let slider;
 let playButton;
 let playButtonPath;
 let replayButton;
+let playbackSpeed = 1;
 let playbackFraction = 0;
 let previousAnimationTime;
 let isInitialized = false;
@@ -100,6 +102,22 @@ function initialize() {
       aboutCard.classList.add('hidden');
     },
   );
+
+  const [speedValue] = document.getElementsByClassName('playback-speed-value');
+  const [speedButton] = document.getElementsByClassName('playback-speed');
+  speedButton.addEventListener(
+    'click',
+    (e) => {
+      e.stopPropagation();
+      const currentPlayBackSpeedIndex = PLAYBACK_SPEEDS.findIndex(
+        (speed) => speed === playbackSpeed,
+      );
+      playbackSpeed = PLAYBACK_SPEEDS[
+        (currentPlayBackSpeedIndex + 1) % PLAYBACK_SPEEDS.length
+      ];
+      speedValue.innerHTML = playbackSpeed.toString();
+    },
+  );
 }
 
 function toggleIsAnimationPlaying() {
@@ -133,7 +151,7 @@ function animate() {
     return;
   }
   const elapsedTime = now - previousAnimationTime;
-  playbackFraction += elapsedTime / PLAYBACK_TIME;
+  playbackFraction += (elapsedTime / PLAYBACK_TIME) * playbackSpeed;
   playbackFraction = Math.min(playbackFraction, 1.0);
   isFinished = playbackFraction === 1.0;
   if (playbackFraction === 1.0 && isReplayEnabled) {

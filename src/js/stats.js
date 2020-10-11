@@ -6,7 +6,7 @@ import debounce from './utils/debounce';
 
 const WORLD_ISO_CODE = 'OWID_WRL';
 const k = 4;
-const n = 10;
+const n = window.innerWidth >= 1024 ? 10 : 5;
 const width = 300;
 const barSize = 48;
 const duration = 250;
@@ -254,12 +254,12 @@ function setActiveDataSet(dataSetKey) {
         .append('tspan')
         .attr('y', 35)
         .attr('x', 150)
-        .attr('font-size', '1.25rem')
+        .attr('font-size', '1.45rem')
         .attr('class', 'title')
         .text(`COVID-19 ${activeDataSetName.toUpperCase()}`))
       .call((text) => text
         .append('tspan')
-        .attr('y', 60)
+        .attr('y', 65)
         .attr('x', 150)
         .attr('font-size', '1rem')
         .attr('class', 'date')

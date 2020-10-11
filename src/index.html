@@ -20,17 +20,42 @@
     <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
   </head>
   <body>
+    <div class="loading">
+      <div class="loading-content">
+        <h2>Loading...</h2>
+        <div class="loader-wrapper">
+          <div class="loader">
+            <div class="indeterminate"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="search hidden">
+      <div class="search-inner">
+        <span class="search-close">
+           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 496.096 496.096">
+              <path d="M259.41,247.998L493.754,13.654c3.123-3.124,3.123-8.188,0-11.312c-3.124-3.123-8.188-3.123-11.312,0L248.098,236.686 L13.754,2.342C10.576-0.727,5.512-0.639,2.442,2.539c-2.994,3.1-2.994,8.015,0,11.115l234.344,234.344L2.442,482.342 c-3.178,3.07-3.266,8.134-0.196,11.312s8.134,3.266,11.312,0.196c0.067-0.064,0.132-0.13,0.196-0.196L248.098,259.31 l234.344,234.344c3.178,3.07,8.242,2.982,11.312-0.196c2.995-3.1,2.995-8.016,0-11.116L259.41,247.998z"/>
+          </svg>       
+        </span>
+        <input class="search-input" type="text" placeholder="Search Country" />
+        <div class="search-suggestions frs-hide-scroll-wrapper">
+          <div class="frs-hide-scroll">
+            <ul class="search-suggestions-list">
+              <li class="search-suggestions-list-item">Kenya</li>
+              <li class="search-suggestions-list-item">Uganda</li>
+              <li class="search-suggestions-list-item">Democratic Republic of Congo</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="about-card frs-hide-scroll-wrapper hidden">
       <div class="frs-hide-scroll">
         <div class="about-card-inner">
           <span class="about-card-close">
-             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-               viewBox="0 0 496.096 496.096">
-                <path d="M259.41,247.998L493.754,13.654c3.123-3.124,3.123-8.188,0-11.312c-3.124-3.123-8.188-3.123-11.312,0L248.098,236.686
-                  L13.754,2.342C10.576-0.727,5.512-0.639,2.442,2.539c-2.994,3.1-2.994,8.015,0,11.115l234.344,234.344L2.442,482.342
-                  c-3.178,3.07-3.266,8.134-0.196,11.312s8.134,3.266,11.312,0.196c0.067-0.064,0.132-0.13,0.196-0.196L248.098,259.31
-                  l234.344,234.344c3.178,3.07,8.242,2.982,11.312-0.196c2.995-3.1,2.995-8.016,0-11.116L259.41,247.998z"/>
-            </svg>       
+             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 496.096 496.096">
+                <path d="M259.41,247.998L493.754,13.654c3.123-3.124,3.123-8.188,0-11.312c-3.124-3.123-8.188-3.123-11.312,0L248.098,236.686 L13.754,2.342C10.576-0.727,5.512-0.639,2.442,2.539c-2.994,3.1-2.994,8.015,0,11.115l234.344,234.344L2.442,482.342 c-3.178,3.07-3.266,8.134-0.196,11.312s8.134,3.266,11.312,0.196c0.067-0.064,0.132-0.13,0.196-0.196L248.098,259.31 l234.344,234.344c3.178,3.07,8.242,2.982,11.312-0.196c2.995-3.1,2.995-8.016,0-11.116L259.41,247.998z"/> 
+             </svg>       
           </span>
           <h1>Ailing Planet</h1>
           <p>
@@ -88,8 +113,14 @@
         </div>
       </div>
     </div>
-    <div class="content">
-      <div class="error-message hidden"></div>
+    <div class="error-message hidden"></div>
+    <div class="content hidden">
+      <div class="search-button-wrapper">
+        <button class="search-button">
+          Search
+        </button>
+        <p class="search-button-tip">Tip: Use Ctrl+F to Search</p>
+      </div>
       <div class="chart hidden"></div>
       <div class="date"></div>
       <div class="country-stats hidden"></div>
@@ -97,6 +128,10 @@
       <div class="controller hidden">
         <div class="controller-inner">
           <div class="controls">
+            <div class="playback-speed">
+              <span class="playback-speed-times">&times;</span>
+              <span class="playback-speed-value">1</span>
+            </div>
             <button class="replay-button">
               <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1em" height="1em" style="-ms-transform: rotate(320deg); -webkit-transform: rotate(320deg); transform: rotate(320deg);" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24">
                 <path d="M12 5V1L7 6l5 5V7a6 6 0 0 1 6 6a6 6 0 0 1-6 6a6 6 0 0 1-6-6H4a8 8 0 0 0 8 8a8 8 0 0 0 8-8a8 8 0 0 0-8-8z"/>

@@ -3,6 +3,7 @@ import { FRSHideScrollbar } from 'frs-hide-scrollbar';
 import globe from './globe';
 import stats from './stats';
 import player from './player';
+import search from './search';
 import isWebGLAvailable from './webgl-check';
 import '../scss/app.scss';
 
@@ -15,7 +16,7 @@ const [countryStatElement] = document.getElementsByClassName(
 );
 const [controllerElement] = document.getElementsByClassName('controller');
 
-function computeDataSets(networkData) {
+async function computeDataSets(networkData) {
   const { data, locations } = networkData;
   const locationIsoCodes = Object.keys(locations);
   const countryIsoCodes = locationIsoCodes.filter((key) => key !== WORLD_ISO_CODE);
@@ -36,55 +37,61 @@ function computeDataSets(networkData) {
   const locationIsoCodeToNameMap = new Map(
     locationIsoCodes.map((isoCode) => [isoCode, locations[isoCode].name]),
   );
-  [0, 1].map((dataIndex) => {
-    const statsData = sortedDates.reduce(
-      (datesData, date) => [
-        ...datesData,
-        [
-          new Date(`${date}T00:00:00Z`),
-          new Map(
-            locationIsoCodes.map((isoCode) => [
-              isoCode,
-              cleanedData[date][isoCode][dataIndex],
-            ]),
-          ),
+
+  await Promise.all(
+    [0, 1].map((dataIndex) => {
+      const statsData = sortedDates.reduce(
+        (datesData, date) => [
+          ...datesData,
+          [
+            new Date(`${date}T00:00:00Z`),
+            new Map(
+              locationIsoCodes.map((isoCode) => [
+                isoCode,
+                cleanedData[date][isoCode][dataIndex],
+              ]),
+            ),
+          ],
         ],
-      ],
-      [],
-    );
-    const globeData = sortedDates.map((date) => {
-      const max = countryIsoCodes.reduce(
-        (maxValue, isoCode) => Math.max(maxValue, cleanedData[date][isoCode][dataIndex]),
-        1,
+        [],
       );
-      return countryIsoCodes
-        .map((isoCode) => [
-          locations[isoCode].lat,
-          locations[isoCode].lng,
-          cleanedData[date][isoCode][dataIndex] / max,
-        ])
-        .reduce((flatArr, arr) => [...flatArr, ...arr], []);
-    });
-    return {
-      dataSetName: dataIndex === 0 ? 'Total Cases' : 'Total Deaths',
-      statsData,
-      globeData,
-    };
-  })
-    .forEach((dataSet, dataIndex) => {
-      const { dataSetName, globeData, statsData } = dataSet;
-      globe.loadAnimationData({
-        globeData,
-        dataSetName,
-        dataSetKey: dataIndex,
+      const globeData = sortedDates.map((date) => {
+        const max = countryIsoCodes.reduce(
+          (maxValue, isoCode) => Math.max(maxValue, cleanedData[date][isoCode][dataIndex]),
+          1,
+        );
+        return countryIsoCodes
+          .map((isoCode) => [
+            locations[isoCode].lat,
+            locations[isoCode].lng,
+            cleanedData[date][isoCode][dataIndex] / max,
+          ])
+          .reduce((flatArr, arr) => [...flatArr, ...arr], []);
       });
-      stats.loadAnimationData({
+      return {
+        dataSetName: dataIndex === 0 ? 'Total Cases' : 'Total Deaths',
         statsData,
-        dataSetName,
-        dataSetKey: dataIndex,
-        locationIsoCodeToNameMap,
-      });
-    });
+        globeData,
+      };
+    })
+      .map((dataSet, dataIndex) => {
+        const { dataSetName, globeData, statsData } = dataSet;
+        return [
+          globe.loadAnimationData({
+            globeData,
+            dataSetName,
+            dataSetKey: dataIndex,
+          }),
+          stats.loadAnimationData({
+            statsData,
+            dataSetName,
+            dataSetKey: dataIndex,
+            locationIsoCodeToNameMap,
+          }),
+        ];
+      })
+      .reduce((flatArr, arr) => [...flatArr, ...arr], []),
+  );
 }
 
 function setActiveDataSet(dataIndex) {
@@ -150,6 +157,7 @@ function initialize() {
   globe.initialize();
   stats.initialize();
   player.initialize();
+  search.initialize();
   player.addItem(globe);
   player.addItem(stats);
 }
@@ -163,11 +171,14 @@ window.addEventListener('load', () => {
   } else {
     window.fetch('./data.json')
       .then((res) => res.json())
-      .then((res) => {
+      .then(async (res) => {
         initialize();
-        computeDataSets(res);
+        await computeDataSets(res);
         const interval = setInterval(() => {
           if (globe.isReady()) {
+            const [loadingElement] = document.getElementsByClassName('loading');
+            loadingElement.parentNode.removeChild(loadingElement);
+            contentElement.classList.remove('hidden');
             clearInterval(interval);
             setActiveDataSet(0);
           }

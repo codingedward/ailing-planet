@@ -8,6 +8,7 @@ import countries from './countries';
 import debounce from './utils/debounce';
 import countryIsoCodeToLatLng from './country-iso-to-latlng';
 import BufferGeometryUtils from './utils/three-buffer-geometry-utils';
+import nonBlockingWait from './utils/nonBlockingWait';
 
 Math.deg2Rad = (deg) => (deg * Math.PI) / 180;
 Math.rad2Deg = (rad) => (rad * 180) / Math.PI;
@@ -26,8 +27,8 @@ const EPSILON2 = 1e-12;
 const DATA_STEP = 3;
 const GLOBE_RADIUS = 200;
 const POINTS_GLOBE_RADIUS = GLOBE_RADIUS + 0.5;
-const SKYBOX_TEXTURE = `images/space`;
-const WORLD_TEXTURE = `images/world.jpg`;
+const SKYBOX_TEXTURE = 'images/space';
+const WORLD_TEXTURE = 'images/world.jpg';
 const SHADERS = {
   earth: {
     uniforms: {
@@ -463,11 +464,11 @@ function onZoom(event) {
 
 function onDocumentKeyDown(event) {
   switch (event.keyCode) {
-    case 38:
+    case 38: /* up */
       zoom(100);
       event.preventDefault();
       break;
-    case 40:
+    case 40: /* down */
       zoom(-100);
       event.preventDefault();
       break;
@@ -528,18 +529,23 @@ function createGeometryFromData ({ dataArray, shouldUseMagnitude }) {
   return BufferGeometryUtils.mergeBufferGeometries(geometries);
 }
 
-function loadAnimationData({ globeData, dataSetKey }) {
+async function loadAnimationData({ globeData, dataSetKey }) {
   const geometry = createGeometryFromData({
     dataArray: globeData[0],
     shouldUseMagnitude: false,
   });
   geometry.morphAttributes.position = [];
-  globeData.forEach((dataArray, index) => {
+
+  let index = 0;
+  for await (const dataArray of globeData) {
+    await nonBlockingWait(10); /* allow UI to render */
     geometry.morphAttributes.position[index] = createGeometryFromData({
       dataArray,
       shouldUseMagnitude: true,
     }).attributes.position;
-  });
+    index += 1;
+  }
+
   dataSetPoints[dataSetKey] = new THREE.Mesh(geometry, pointsMaterial);
 }
 

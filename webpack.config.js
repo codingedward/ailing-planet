@@ -145,7 +145,7 @@ const config = function(env, args) {
       new MiniCssExtractPlugin({
         filename: 'css/[name].css',
       }),
-      // new ImageMinPlugin({ test: /\.(jpg|jpeg|png|gif|svg)$/i }),
+      new ImageMinPlugin({ test: /\.(jpg|jpeg|png|gif|svg)$/i }),
       new CleanWebpackPlugin({
         /**
          * Some plugins used do not correctly save to webpack's asset list.
