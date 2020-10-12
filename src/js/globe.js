@@ -155,9 +155,9 @@ function initialize() {
   scene.add(atmosphere);
 
   point = new THREE.Mesh(
-    (new THREE.BoxBufferGeometry(1.0, 1.0, 1.5))
+    (new THREE.BoxBufferGeometry(1.0, 1.0, 2.0))
       .applyMatrix4(
-        new THREE.Matrix4().makeTranslation(0, 0, -0.75),
+        new THREE.Matrix4().makeTranslation(0, 0, -1.00),
       ),
   );
   pointsMaterial = new THREE.MeshBasicMaterial({

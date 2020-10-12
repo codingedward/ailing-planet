@@ -7,7 +7,7 @@ import debounce from './utils/debounce';
 const WORLD_ISO_CODE = 'OWID_WRL';
 const k = 4;
 const n = window.innerWidth >= 1024 ? 10 : 5;
-const width = 300;
+let width = getChartWidth();
 const barSize = 48;
 const duration = 250;
 const margin = {
@@ -31,12 +31,21 @@ let activeLocation = defaultActiveLocation;
 
 const formatNumber = d3.format(',d');
 const formatDate = d3.utcFormat('%d %B %Y');
-const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
+let x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
 const y = d3
   .scaleBand()
   .domain(d3.range(n + 1))
   .rangeRound([margin.top, margin.top + barSize * (n + 1 + 0.1)])
   .padding(0.1);
+
+function getChartWidth() {
+  if (window.innerWidth >= 1024) {
+    return 600;
+  } if (window.innerWidth >= 800) {
+    return 500;
+  }
+  return 400;
+}
 
 function initialize() {
   svg = d3
@@ -56,6 +65,12 @@ function initialize() {
     .append('svg')
     .attr('width', 400)
     .attr('height', 100);
+
+  window.addEventListener('resize', () => {
+    width = getChartWidth();
+    x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
+    svg.attr('viewBox', `0 0 ${width} ${height}`);
+  });
 }
 
 function loadAnimationData({

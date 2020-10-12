@@ -46,8 +46,19 @@ canvas {
   z-index: 10;
   user-select: none;
   pointer-events: none;
-  top: 60px;
+  top: 68px;
   left: 0;
+
+  &-tip {
+    display: none;
+    font-style: italic;
+    margin-left: 20px;
+    margin-bottom: -10px;
+
+    @media (min-width: 1024px)  {
+      display: block;
+    }
+  }
 }
 .date {
   position: absolute;
@@ -476,8 +487,6 @@ ul {
 @media (min-width: 1024px) {
   .chart {
     top: 0;
-    width: 25%;
-    max-width: 330px;
   }
   .country-stats {
     top: 15vh;
