@@ -163,7 +163,6 @@ function setActiveDataSet(dataSetKey) {
   function bars(theSvg) {
     let bar = theSvg
       .append('g')
-      .attr('fill-opacity', 0.6)
       .selectAll('rect');
     const onClick = createDebouncedSetFocusOnCountry('clicked');
     return ([, data], transition) => {
@@ -179,7 +178,7 @@ function setActiveDataSet(dataSetKey) {
               .attr('pointer-events', 'all')
               .attr('cursor', 'pointer')
               .on('click', onClick)
-              .attr('fill', '#ff0000')
+              .attr('fill', '#4d0000')
               .attr('height', y.bandwidth())
               .attr('x', x(0))
               .attr('y', (d) => y((prev.get(d) || d).rank))
@@ -211,6 +210,7 @@ function setActiveDataSet(dataSetKey) {
       } else {
         label = label
           .attr('display', 'block')
+          .attr('fill', '#fff')
           .data(data.slice(0, n), (d) => d.name)
           .join(
             (enter) => enter
