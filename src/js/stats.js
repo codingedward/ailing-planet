@@ -210,7 +210,6 @@ function setActiveDataSet(dataSetKey) {
       } else {
         label = label
           .attr('display', 'block')
-          .attr('fill', '#fff')
           .data(data.slice(0, n), (d) => d.name)
           .join(
             (enter) => enter
@@ -221,6 +220,7 @@ function setActiveDataSet(dataSetKey) {
                   (prev.get(d) || d).rank,
                 )})`,
               )
+              .attr('fill', '#fff')
               .attr('y', y.bandwidth() / 2)
               .attr('x', -6)
               .attr('dy', '-0.25em')
