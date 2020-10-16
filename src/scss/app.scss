@@ -69,6 +69,24 @@ canvas {
   width: 300px;
   left: calc(50vw - 150px);
 }
+.container-tip {
+  display: none;
+  position: absolute;
+  font-style: italic;
+
+  @media (min-width: 600px) {
+    display: block;
+    bottom: 20%;
+    right: 0;
+    width: 200px;
+  }
+
+  @media (min-width: 1024px) {
+    bottom: 5%;
+    width: 300px;
+    margin-left: 18px;
+  }
+}
 .country-stats {
   z-index: 11;
   user-select: none;
