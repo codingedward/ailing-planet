@@ -39,12 +39,18 @@ const y = d3
   .padding(0.1);
 
 function getChartWidth() {
-  if (window.innerWidth >= 1024) {
-    return 600;
-  } if (window.innerWidth >= 800) {
+  /* An attempt at finding a formula to resize the chart by */
+  const w = window.innerWidth;
+  if (w <= 1024) {
+    return Math.max(250, 250 + (w - 400) / 2);
+  }
+  if (w <= 1200) {
+    return 450;
+  }
+  if (w <= 1440) {
     return 500;
   }
-  return 400;
+  return 600;
 }
 
 function initialize() {

@@ -81,8 +81,8 @@ canvas {
     width: 200px;
   }
 
-  @media (min-width: 1024px) {
-    bottom: 5%;
+  @media (min-width: 1200px) {
+    bottom: 15%;
     width: 300px;
     margin-left: 18px;
   }
@@ -476,48 +476,51 @@ ul {
     width: 60%;
   }
 }
-@media (min-width: 450px) {
-  .chart {
-    width: 50%;
-  }
-}
 @media (min-width: 500px) {
   .country-stats {
     left: 100px;
     transform: scale(0.9);
   }
 }
-@media (min-width: 600px) {
-  .chart {
-    width: 40%;
-  }
-}
 @media (min-width: 700px) {
   .country-stats {
-    transform: none;
     left: 150px;
   }
 }
 @media (min-width: 800px) {
   .chart {
-    width: 30%;
+    width: 50%;
   }
 }
 @media (min-width: 1024px) {
   .chart {
-    top: 0;
-  }
-  .country-stats {
-    top: 15vh;
-    left: calc(50vw - 300px);
+    top: 20px;
+    width: 40%;
   }
   .controller-inner {
     width: 60%;
   }
 }
 @media (min-width: 1200px) {
+  .chart {
+    width: 35%;
+  }
+  .country-stats {
+    top: 15vh;
+    transform: none;
+    left: calc(50vw - 200px);
+  }
   .controller-inner {
     width: 40%;
+  }
+}
+
+@media (min-width: 1440px) {
+  .chart {
+    width: 30%;
+  }
+  .country-stats {
+    left: calc(50vw - 300px);
   }
 }
 
